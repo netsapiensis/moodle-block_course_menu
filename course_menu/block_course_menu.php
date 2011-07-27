@@ -633,7 +633,7 @@ class block_course_menu extends block_base
     function get_sections() {
     	global $CFG, $USER, $DB, $OUTPUT;
         
-    	if (!empty($this->instance)) {
+    	if (!empty($this->instance) && $this->page->course->id != SITEID) {
         	
         	get_all_mods($this->course->id, $mods, $modnames, $modnamesplural, $modnamesused);
             
