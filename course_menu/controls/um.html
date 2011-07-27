@@ -1,0 +1,27 @@
+<!-- User Management -->
+<tr>
+  <?php
+    print '<td align="center"><img src="../icons/group.gif" alt="participants" align="texttop" /></td>';
+    print '<td><a href="'.$CFG->wwwroot.'/user/index.php?id='.$course->id.'">'.get_string('participants').'</a></td>';
+  ?>
+  <td><?php print_string('participantsdesc', 'block_course_menu');?></td>
+</tr>
+<tr>
+  <?php
+   	print '<td align="center"><img src="'.$CFG->pixpath.'/i/group.gif" alt="groups" align="texttop" /></td>';
+	if (strpos('x'.$CFG->release,'1.7') > 0) {
+	    print '<td><a href="'.$CFG->wwwroot.'/course/groups.php?id='.$course->id.'">'.get_string("groups").'</a></td>';
+	} else {
+	    print '<td><a href="'.$CFG->wwwroot.'/group/index.php?id='.$course->id.'">'.get_string("groups").'</a></td>';
+	}
+  ?>
+  <td><?php print_string('groupsdesc','block_course_menu');?></td>
+</tr>
+<tr>
+  <?php
+    $context = get_context_instance(CONTEXT_COURSE, $course->id);
+	print '<td align="center"><img src="'.$CFG->pixpath.'/i/roles.gif" alt="assign roles" align="texttop" /></td>'; 
+	print '<td><a href="'.$CFG->wwwroot.'/admin/roles/assign.php?contextid='.$context->id.'">'.get_string('assignroles', 'block_course_menu').'</a></td>';
+  ?>
+  <td><?php print_string('rolesdesc', 'block_course_menu');?></td>
+</tr>
