@@ -5,7 +5,7 @@ class block_course_menu extends block_base
     function init() {
         $this->title = get_string('blockname', 'block_course_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2011072701;
+        $this->version = 2010100101;
     }
 
 	function instance_allow_config() {
@@ -304,7 +304,6 @@ class block_course_menu extends block_base
         $child['count'] = count($sections);
         $chapter['childElements'] = array();
         $chapter['childElements'][0] = $child;
-		$chapter['count'] = 0;
 
         $config['chapters'][] = $chapter;
 
