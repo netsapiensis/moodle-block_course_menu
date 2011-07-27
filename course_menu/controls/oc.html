@@ -1,0 +1,22 @@
+<!-- Other Controls -->
+<tr>
+  <?php 
+    print '<td align="center"><img src="../icons/scale.gif" alt= "grading scales" align="texttop" /></td>';
+    print '<td><a href="'.$CFG->wwwroot.'/course/scales.php?id='.$course->id.'">'.get_string('scales').'</a></td>';
+  ?>
+  <td><?php print_string('scalesdesc', 'block_course_menu');?></td>
+</tr>
+<tr>
+  <?php
+    print '<td align="center"><img src="../icons/kuser1.gif" alt="profile" align="texttop" /></td>';
+    print '<td><a href="'.$CFG->wwwroot."/user/edit.php?id=".$USER->id.'&course='.$course->id.'">'.get_string('editmyprofile').'</a></td>';
+  ?>
+  <td><?php print_string('profiledesc', 'block_course_menu');?></td>
+</tr>
+<tr> 
+  <?php
+    print '<td align="center"><img src="../icons/scontrols.gif" alt="student control panel" align="texttop" /></td>';
+    print '<td><a href="controls.php?id='.$course->id.'&amp;action=sc">'.get_string('studentcp', 'block_course_menu').'</a></td>';
+  ?>
+  <td><?php print_string('studentcontrolpaneldesc','block_course_menu');?></td>
+</tr>

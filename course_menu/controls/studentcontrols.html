@@ -1,0 +1,50 @@
+<table border="1" cellpadding="4" cellspacing="3" style="margin: 40px auto;">
+<tr>
+  <td colspan="3"><?php print $course->fullname ?> Student Control Panel:</td> 
+</tr>
+<tr><td colspan="2" width="20%"></td><td width="80%"></td></tr>
+<tr>
+  <?php
+    print '<td align="center"><img src="../icons/group.gif" alt="participants" align="texttop" /></td>';
+    print '<td><a href="'.$CFG->wwwroot.'/user/index.php?id='.$course->id.'">'.get_string('participants').'</a></td>';
+  ?>
+<td><?php print_string('studentparticipants','block_course_menu');?></td>
+</tr>
+<?php
+    // conditionally include a link to quickmail
+    if (is_dir($CFG->dirroot.'/blocks/quickmail')) {
+        print '<tr><td align="center"><img src="'.$CFG->pixpath.'/i/email.gif" alt="quickmail" align="texttop" /></td>';
+        print '<td><a href="'.$CFG->wwwroot.'/blocks/quickmail/email.php?id='.$course->id.'">'.get_string('emailstudents', 'block_course_menu').'</a></td>';
+        print '<td>'.get_string('emaildesc', 'block_course_menu').'</td></tr>';
+    }
+?>
+<tr>
+  <?php
+    print '<td align="center"><img src="'.$CFG->pixpath.'/i/grades.gif" alt="gradebook" align="texttop" /></td>';
+    print '<td><a href="'.$CFG->wwwroot.'/grade/index.php?id='.$course->id.'">'.get_string('grades').'</a></td>';
+  ?>                                                    
+  <td><?php print_string('studentviewgrades','block_course_menu');?></td>
+</tr>
+<tr>
+  <?php
+    print '<td align="center"><img src="../icons/kuser1.gif" alt="profile" align="texttop" /></td>';
+    print '<td><a href="'.$CFG->wwwroot.'/user/edit.php?id='.$USER->id.'&course='.$course->id.'">'.get_string('editmyprofile').'</a></td>'
+  ?>
+  <td><?php print_string('studentpersonalsettings','block_course_menu');?></td>
+</tr>
+<tr>
+  <?php
+    print '<td align="center"><img src="../icons/userpwd.gif" alt="change password" align="texttop" /></td>';
+    print '<td><a href="'.$CFG->wwwroot.'/login/change_password.php?='.$USER->id.'">'.get_string('password').'</a></td>';
+  ?>                                                                                                                                        
+  <td><?php print_string('studentchangepassword','block_course_menu');?></td>
+</tr>
+<?php
+    if(!empty($CFG->block_course_menu_studentmanual_url)) {
+        print '<tr><td align="center"><img src="../icons/smanual.gif" alt="student manual" align="texttop" /></td>';
+        print '<td></td>';
+        print '</td><td>'.get_string('studentmanualclick','block_course_menu').'</td></tr>';
+    }
+?>
+</table>
+</form>

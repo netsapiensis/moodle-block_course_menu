@@ -1,0 +1,65 @@
+<!-- Main Control Panel -->
+  <tr>
+    <?php 
+        print '<td align="center"><img src="'.$CFG->pixpath.'/i/settings.gif"  alt="settings" align="texttop" /></td>';
+        print '<td><a href="'.$CFG->wwwroot.'/course/edit.php?id='.$course->id.'">'.get_string("editcoursesettings").'</a></td>';
+    ?>
+    <td><?php print_string("editcoursesettingsdesc", 'block_course_menu');?></td>
+  </tr>
+  <tr>
+    <?php
+        print '<td align="center"><img src="'.$CFG->pixpath.'/i/grades.gif"  alt="gradebook" align="texttop" /></td>';
+        print '<td><a href="'.$CFG->wwwroot.'/grade/index.php?id='.$course->id.'">'.get_string("grades").'</a></td>'; 
+    ?>
+    <td><?php print_string('gradesdesc','block_course_menu');?></td>
+  </tr>
+<?php
+    // conditionally include a link to quickmail
+    if (is_dir($CFG->dirroot.'/blocks/quickmail')) {
+        print '<tr><td align="center"><img src="'.$CFG->pixpath.'/i/email.gif" alt="quickmail" align="texttop" /></td>';
+        print '<td><a href="'.$CFG->wwwroot.'/blocks/quickmail/email.php?id='.$course->id.'">'.get_string('emailstudents', 'block_course_menu').'</a></td>';
+        print '<td>'.get_string('emaildesc', 'block_course_menu').'</td></tr>';
+    }
+?>
+  <tr>
+    <?php
+        print '<td align="center"><img src="'.$CFG->pixpath.'/i/files.gif"  alt="course files" align="texttop" /></td>';
+        print '<td><a href="'.$CFG->wwwroot.'/files/index.php?id='.$course->id.'">'.get_string('files').'</a></td>';
+        ?>
+    <td><?php print_string('filesdesc', 'block_course_menu');?></td>
+  </tr>
+  <tr>  	
+    <?php
+        print '<td align="center"><img src="../icons/userpwd.gif" alt="change password" align="texttop" /></td>';
+        print '<td><a href="'.$CFG->wwwroot.'/login/change_password.php?='.$USER->id.'">'.get_string("password").'</a></td>';
+    ?>
+    <td><?php print_string('passworddesc','block_course_menu');?></td>
+  </tr>
+  <tr>
+    <?php 
+        print '<td align="center"><img src="'.$CFG->pixpath.'/i/log.gif" alt="course access logs" align="texttop" /></td>';
+        print '<td><a href="'.$CFG->wwwroot.'/course/report.php?id='.$course->id.'">'.get_string("reports").'</a></td>';
+    ?>
+    <td><?php print_string('logsdesc', 'block_course_menu');?></td>
+  </tr>
+  <?php
+  // conditionally include the course program block links
+    if (is_dir($CFG->dirroot.'/blocks/course_program')) {
+  ?>
+  <tr>
+    <?php
+        print '<td align="center"><img src="'.$CFG->wwwroot.'/blocks/course_program/calendarpic16.gif" alt="course program" align="texttop" /></td>';
+        print '<td><a href="'.$CFG->wwwroot.'/blocks/course_program/view.php?id='.$course->id.'">'.get_string("programshowhid", "block_course_program").'</a></td>';
+    ?>
+    <td><?php print_string('courseprogramdesc','block_course_menu');?></td>
+  </tr>
+  <tr>
+    <?php
+        print '<td align="center"><img src="'.$CFG->wwwroot.'/blocks/course_program/calendarpicdue.gif" alt="due dates" align="texttop" /></td>';
+        print '<td><a href="'.$CFG->wwwroot.'/blocks/course_program/view.php?id='.$course->id.'&mode=0">'.get_string("programduedates", "block_course_program").'</a></td>';
+    ?>
+    <td><?php print_string('courseduedatedesc', 'block_course_menu');?></td>
+  </tr>
+  <?php 
+    }
+  ?>
