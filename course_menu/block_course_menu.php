@@ -1032,7 +1032,7 @@ class block_course_menu extends block_base
     	if (empty($CFG->block_course_menu_global_config)) {
         	$this->init_default_config(false);
         } else {
-        	$this->config = unserialize($CFG->block_course_menu_global_config);
+        	$this->config = @unserialize($CFG->block_course_menu_global_config);
 	        if (!$this->element_exists('sitepages')) {
 	        	$this->init_default_config(false);
 	        }
@@ -1053,6 +1053,9 @@ class block_course_menu extends block_base
     
     function element_exists($id) 
     {
+        if (!is_object($this->config) || !isset($this->config->elements) || !is_array($this->config->elements)) {
+            return false;
+        }
     	foreach ($this->config->elements as $element) {
     		if ($element['id'] == $id) {
     			return true;
