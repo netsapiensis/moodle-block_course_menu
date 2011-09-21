@@ -38,4 +38,4 @@ if ($blk !== false && is_object($blk)) {
     }
 }
 
-$plugin->version = 2011090601;
+$plugin->version = 2011092101;

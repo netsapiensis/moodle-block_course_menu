@@ -444,7 +444,7 @@ class block_course_menu extends block_base
     function check_default_config() {
         global $CFG;
         
-        if (empty($this->config) || !is_object($this->config)) {
+        if (empty($this->config) || !is_object($this->config) || empty($this->config->chapters)) {
             //try global config
             if ($this->_site_level) {
                 
