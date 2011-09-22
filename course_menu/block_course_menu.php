@@ -64,6 +64,7 @@ class block_course_menu extends block_base
 	}
 	
 	function get_content() {
+        
         global $CFG, $USER, $DB;
         
         if ($this->page->course->id == SITEID) {
@@ -444,7 +445,7 @@ class block_course_menu extends block_base
     function check_default_config() {
         global $CFG;
         
-        if (empty($this->config) || !is_object($this->config) || empty($this->config->chapters)) {
+        if (empty($this->config) || !is_object($this->config) || (!$this->_site_level && empty($this->config->chapters))) {
             //try global config
             if ($this->_site_level) {
                 
@@ -948,6 +949,22 @@ class block_course_menu extends block_base
                 $lastIndex = $i;
                 $chapters[] = $chapter;
             }
+        } else {
+            $data->chapEnable         = 0;
+            $data->subChapEnable      = 0;
+            $data->subChaptersCount   = 1;
+            $data->chapters           = array();
+
+            $chapter = array();
+            $chapter['name']  = get_string("chapter", "{$this->blockname}")." 1";
+
+            $child = array();
+            $child['type'] = "subchapter";
+            $child['name'] = get_string("subchapter", "{$this->blockname}") . " 1";
+            $child['count'] = 0;
+            $chapter['childElements'] = array($child);
+
+            $chapters[] = $chapter;
         }
         $data->chapters = $chapters;
 
@@ -1015,6 +1032,7 @@ class block_course_menu extends block_base
 
 	    		$data->links[] = $link;
 	    	}
+            
     	}
         return parent::instance_config_save($data, $nolongerused);
     }
