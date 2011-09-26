@@ -23,7 +23,7 @@
 
 class block_course_menu_edit_form extends block_edit_form
 {
-    /*function definition() {
+    function definition() {
         $mform =& $this->_form;
 
         // First show fields specific to this type of block.
@@ -52,6 +52,7 @@ class block_course_menu_edit_form extends block_edit_form
         $regionoptions = $this->page->theme->get_all_block_regions();
 
         $parentcontext = get_context_instance_by_id($this->block->instance->parentcontextid);
+        
         $mform->addElement('hidden', 'bui_parentcontextid', $parentcontext->id);
         
         $contextoptions = array();
@@ -59,14 +60,14 @@ class block_course_menu_edit_form extends block_edit_form
              ($parentcontext->contextlevel == CONTEXT_SYSTEM)) {        // Home page
             $contextoptions[0] = get_string('showonfrontpageonly', 'block');
             $contextoptions[1] = get_string('showonfrontpageandsubs', 'block');
-            $contextoptions[2] = get_string('showonentiresite', 'block');
+            //$contextoptions[2] = get_string('showonentiresite', 'block');
         } else {
             $parentcontextname = print_context_name($parentcontext);
             $contextoptions[0] = get_string('showoncontextonly', 'block', $parentcontextname);
             $contextoptions[1] = get_string('showoncontextandsubs', 'block', $parentcontextname);
         }
         $mform->addElement('select', 'bui_contexts', get_string('contexts', 'block'), $contextoptions);
-
+        
         if ($this->page->pagetype == 'site-index') {   // No need for pagetype list on home page
             $pagetypelist = array('*');
         } else {
@@ -80,14 +81,14 @@ class block_course_menu_edit_form extends block_edit_form
                 $pagetypeoptions[$pagetype] .= ' (' . get_string($pagetypestringname, 'pagetype') . ')';
             }
         }
-        $mform->addElement('hidden', 'bui_pagetypepattern', '', 0);
+        $mform->addElement('select', 'bui_pagetypepattern', get_string('restrictpagetypes', 'block'), $pagetypeoptions);
 
         if ($this->page->subpage) {
             $subpageoptions = array(
                 '%@NULL@%' => get_string('anypagematchingtheabove', 'block'),
                 $this->page->subpage => get_string('thisspecificpage', 'block', $this->page->subpage),
             );
-            $mform->addElement('hidden', 'bui_subpagepattern', '', 0);
+            $mform->addElement('select', 'bui_subpagepattern', get_string('subpages', 'block'), $subpageoptions);
         }
 
         $defaultregionoptions = $regionoptions;
@@ -121,7 +122,7 @@ class block_course_menu_edit_form extends block_edit_form
         }
 
         $this->add_action_buttons();
-    }*/
+    }
 
     protected function specific_definition($mform) {
         global $CFG;
