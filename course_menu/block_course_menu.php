@@ -514,7 +514,6 @@ class block_course_menu extends block_base
                     $this->config->chapters[$i]['childElements'][0] = $newChild;
                 }
 
-
 	        } else {
                 // make 1 section / chapter; eliminate ($chapCount - $sectCount) chapters, from the last ones
                 for ($i = 0; $i < $sectCount; $i++) {
@@ -635,8 +634,9 @@ class block_course_menu extends block_base
     	global $CFG, $USER, $DB, $OUTPUT;
         
     	if (!empty($this->instance) && $this->page->course->id != SITEID) {
-        	
-        	get_all_mods($this->course->id, $mods, $modnames, $modnamesplural, $modnamesused);
+            
+            require_once($CFG->dirroot."/course/lib.php");
+            get_all_mods($this->course->id, $mods, $modnames, $modnamesplural, $modnamesused);
             
         	$context = get_context_instance(CONTEXT_COURSE, $this->course->id);
             $isteacher = has_capability('moodle/course:update', $context);
@@ -676,12 +676,17 @@ class block_course_menu extends block_base
                             $strsummary = $this->trim($strsummary);
                             $strsummary = trim($this->clearEnters($strsummary));
                             $newSec['name'] = $strsummary;
-
+                            
                             // url
                             if ($displaysection != 0) {
                                 $newSec['url'] = "{$CFG->wwwroot}/course/view.php?id={$this->course->id}&$courseFormat=$k";
                             } else {
-                                $newSec['url'] = "#section-$k";
+                                $url = (string)$this->page->url;
+                                if (!preg_match("/\/course\/view.php/", $url)) {
+                                    $newSec['url'] = "{$CFG->wwwroot}/course/view.php?id={$this->course->id}#section-$k";
+                                } else {
+                                    $newSec['url'] = "#section-$k";
+                                }
                             }
 
                             // resources
