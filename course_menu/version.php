@@ -38,4 +38,9 @@ if ($blk !== false && is_object($blk)) {
     }
 }
 
-$plugin->version = 2011092901;
+$plugin->version = 2011120501;
+
+$plugin->component  = 'block_course_menu';
+$plugin->release    = '2.0.1';
+$plugin->requires   = 2010112400; // Moodle 2.0
+$plugin->maturity   = MATURITY_STABLE;
