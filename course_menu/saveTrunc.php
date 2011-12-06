@@ -9,4 +9,5 @@ $_SESSION['truncWidth'][$courseId] = $_REQUEST['truncWidth'];
 
 echo ' ';
 
+
 ?>
