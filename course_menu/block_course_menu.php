@@ -1,5 +1,6 @@
 <?php
 
+
 class block_course_menu extends block_base
 {
     function init() {
