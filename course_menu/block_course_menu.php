@@ -30,7 +30,7 @@ class block_course_menu extends block_base
     /** @var int Trim characters from the center */
     const TRIM_CENTER = 3;
 
-    const DEFAULT_TRIM_LENGTH = 10;
+    const DEFAULT_TRIM_LENGTH = 20;
     
     const DEFAULT_SITE_LEVEL_TITLE  = 'Menu';
     const DEFAULT_DOCKED_BG         = '#00AEEF';
@@ -321,7 +321,7 @@ class block_course_menu extends block_base
     }
 
     function init_default_config($save_it = true) {
-    	global $CFG, $USER, $OUTPUT;
+    	global $CFG, $OUTPUT;
 
     	// elements -------------------------------------------------------------------------
     	$elements   = array();
@@ -429,7 +429,8 @@ class block_course_menu extends block_base
 
         $config->expandableTree = self::EXPANDABLE_TREE;
         $config->trimmode       = self::TRIM_RIGHT;
-        $config->trimlength     = self::DEFAULT_TRIM_LENGTH;
+        $config->trimlength     = isset($CFG->block_course_menu_trimlength) ? 
+                $CFG->block_course_menu_trimlength : self::DEFAULT_TRIM_LENGTH;
 
         $this->config = $config;
         if ($save_it) {
@@ -807,6 +808,7 @@ class block_course_menu extends block_base
 	}
 
     public function trim($str) {
+        
         $mode = self::TRIM_RIGHT;
         $length = self::DEFAULT_TRIM_LENGTH;
         if (!empty($this->config->trimmode)) {
