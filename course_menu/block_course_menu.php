@@ -589,7 +589,13 @@ class block_course_menu extends block_base
         foreach ($sections as $k => $section) {
     		foreach ($section['resources'] as $l => $resource) {
 	    		$iconClass = $resource['icon'];
-	    		$iconClass = substr($iconClass, strrpos($iconClass, '/') + 1);
+	    		$iconClass = explode('/', $iconClass);
+	    		$len = count($iconClass);
+	    		if ($len >= 2) {
+	    			$iconClass = $iconClass[$len-2].'-'.$iconClass[$len-1];
+	    		} else {
+	    			$iconClass = $iconClass[0]; // Unlikely to happen, but just in case ...
+	    		}
 	    		$iconClass = substr($iconClass, 0, strrpos($iconClass, '.'));
 	    		$iconClass = preg_replace('/[^a-zA-Z0-9]+/', '-', $iconClass);
 	    		$iconClass = "icon".$iconClass;
