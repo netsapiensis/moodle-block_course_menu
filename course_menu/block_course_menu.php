@@ -6,7 +6,7 @@ class block_course_menu extends block_base
     function init() {
         $this->title = get_string('blockname', 'block_course_menu');
         $this->content_type = BLOCK_TYPE_TEXT;
-        $this->version = 2011072701;
+        $this->version = 2012012701;
     }
 
 	function instance_allow_config() {
@@ -511,14 +511,14 @@ class block_course_menu extends block_base
 
         // elements
         $elements = $this->config['elements'];
-    	foreach ($elements as $k => $element) {
+        foreach ($elements as $k => $element) {
     		// set iconClasses
     		if (!empty($elements[$k]['icon'])) {
 	    		$iconClass = $elements[$k]['icon'];
 	    		$iconClass = substr($iconClass, strrpos($iconClass, '/') + 1);
 	    		$iconClass = substr($iconClass, 0, strrpos($iconClass, '.'));
 	    		$iconClass = preg_replace('/[^a-zA-Z0-9]+/', '-', $iconClass);
-	    		$iconClass = "icon".$iconClass;
+                $iconClass = "icon".$iconClass;
     			$elements[$k]['iconClass'] = $iconClass;
     		} else {
     			$elements[$k]['iconClass'] = "";
@@ -589,9 +589,16 @@ class block_course_menu extends block_base
 
     	// section names
         foreach ($sections as $k => $section) {
-    		foreach ($section['resources'] as $l => $resource) {
+            foreach ($section['resources'] as $l => $resource) {
 	    		$iconClass = $resource['icon'];
-	    		$iconClass = substr($iconClass, strrpos($iconClass, '/') + 1);
+				//fix proposed by davosmith - all resources shown with the 
+                $iconClass = explode('/', $iconClass);
+                $len = count($iconClass);
+                if ($len >= 2) {
+                    $iconClass = $iconClass[$len-2].'-'.$iconClass[$len-1];
+                } else {
+                    $iconClass = $iconClass[0]; // Unlikely to happen, but just in case ...
+                }
 	    		$iconClass = substr($iconClass, 0, strrpos($iconClass, '.'));
 	    		$iconClass = preg_replace('/[^a-zA-Z0-9]+/', '-', $iconClass);
 	    		$iconClass = "icon".$iconClass;
