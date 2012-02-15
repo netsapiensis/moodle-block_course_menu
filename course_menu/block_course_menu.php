@@ -242,8 +242,14 @@ class block_course_menu extends block_base
                             break;
                         default:
                             if (substr($element['id'], 0, 4) == 'link') {
-                                $lis .= $renderer->render_link($this->config->links[$linkIndex], $this->course->id, !$first);
-                                $linkIndex++;
+                                preg_match('/link([0-9]+)/', $element['id'], $matches);
+                                $index = intval($matches[1]);
+                                if ($index && isset($this->config->links[$index])) { //this should always happen
+                                    $lis .= $renderer->render_link($this->config->links[$index], $this->course->id, !$first);
+                                } else {
+                                    $lis .= $renderer->render_link($this->config->links[$linkIndex], $this->course->id, !$first);
+                                    $linkIndex++;
+                                }
                             } else {
                                 //check for special links (navigation, settings)
                                 if ($this->is_navigation_element($element['id'])) {
@@ -916,8 +922,8 @@ class block_course_menu extends block_base
         return $cc;
     }
 
-    function instance_config_save($data, $nolongerused = false) {
-
+    function instance_config_save($data, $nolongerused = false) 
+    {
         //append stuff to data - this is BAD
         //chapters
         $chapters = array();
@@ -974,7 +980,7 @@ class block_course_menu extends block_base
             $chapters[] = $chapter;
         }
         $data->chapters = $chapters;
-
+        
         // elements
 	    $data->elements = array();
     	foreach ($_POST['ids'] as $k => $id) {
