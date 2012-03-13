@@ -30,7 +30,7 @@ class block_course_menu extends block_base
     /** @var int Trim characters from the center */
     const TRIM_CENTER = 3;
 
-    const DEFAULT_TRIM_LENGTH = 10;
+    const DEFAULT_TRIM_LENGTH = 20;
     
     const DEFAULT_SITE_LEVEL_TITLE  = 'Menu';
     const DEFAULT_DOCKED_BG         = '#00AEEF';
@@ -242,8 +242,14 @@ class block_course_menu extends block_base
                             break;
                         default:
                             if (substr($element['id'], 0, 4) == 'link') {
-                                $lis .= $renderer->render_link($this->config->links[$linkIndex], $this->course->id, !$first);
-                                $linkIndex++;
+                                preg_match('/link([0-9]+)/', $element['id'], $matches);
+                                $index = intval($matches[1]);
+                                if ($index && isset($this->config->links[$index])) { //this should always happen
+                                    $lis .= $renderer->render_link($this->config->links[$index], $this->course->id, !$first);
+                                } else {
+                                    $lis .= $renderer->render_link($this->config->links[$linkIndex], $this->course->id, !$first);
+                                    $linkIndex++;
+                                }
                             } else {
                                 //check for special links (navigation, settings)
                                 if ($this->is_navigation_element($element['id'])) {
@@ -321,7 +327,7 @@ class block_course_menu extends block_base
     }
 
     function init_default_config($save_it = true) {
-    	global $CFG, $USER, $OUTPUT;
+    	global $CFG, $OUTPUT;
 
     	// elements -------------------------------------------------------------------------
     	$elements   = array();
@@ -429,7 +435,8 @@ class block_course_menu extends block_base
 
         $config->expandableTree = self::EXPANDABLE_TREE;
         $config->trimmode       = self::TRIM_RIGHT;
-        $config->trimlength     = self::DEFAULT_TRIM_LENGTH;
+        $config->trimlength     = isset($CFG->block_course_menu_trimlength) ? 
+                $CFG->block_course_menu_trimlength : self::DEFAULT_TRIM_LENGTH;
 
         $this->config = $config;
         if ($save_it) {
@@ -807,6 +814,7 @@ class block_course_menu extends block_base
 	}
 
     public function trim($str) {
+        
         $mode = self::TRIM_RIGHT;
         $length = self::DEFAULT_TRIM_LENGTH;
         if (!empty($this->config->trimmode)) {
@@ -914,8 +922,8 @@ class block_course_menu extends block_base
         return $cc;
     }
 
-    function instance_config_save($data, $nolongerused = false) {
-
+    function instance_config_save($data, $nolongerused = false) 
+    {
         //append stuff to data - this is BAD
         //chapters
         $chapters = array();
@@ -972,7 +980,7 @@ class block_course_menu extends block_base
             $chapters[] = $chapter;
         }
         $data->chapters = $chapters;
-
+        
         // elements
 	    $data->elements = array();
     	foreach ($_POST['ids'] as $k => $id) {

@@ -4,7 +4,7 @@
  *
  * This file is part of the Course Menu block for Moodle
  *
- * The Course Menu block for Moodle software package is Copyright © 2008 onwards NetSapiensis AB and is provided under
+ * The Course Menu block for Moodle software package is Copyright ï¿½ 2008 onwards NetSapiensis AB and is provided under
  * the terms of the GNU GENERAL PUBLIC LICENSE Version 3 (GPL). This program is free software: you can redistribute it
  * and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
  * either version 3 of the License, or (at your option) any later version.
@@ -58,7 +58,7 @@ class admin_setting_confightml extends admin_setting {
             $data = new stdClass();
             $data->expandableTree = $_POST['expandableTree'];
             $data->linksEnable = $_POST['linksEnable'];
-            $data->trimlength = $_POST['s__trimlength'];
+            $data->trimlength = $_POST['s__block_course_menu_trimlength'];
             // elements
             $data->elements = array();
             foreach ($_POST['ids'] as $k => $id) {
