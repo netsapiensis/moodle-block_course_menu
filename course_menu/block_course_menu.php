@@ -662,7 +662,7 @@ class block_course_menu extends block_base
     		    }
     		}
 
-        	$genericName = get_string("name" . $this->course->format, $this->blockname);
+        	$genericName = get_string("sectionname", 'format_'.$this->course->format);
             $allSections  = get_all_sections($this->course->id);
             
     		$sections = array();

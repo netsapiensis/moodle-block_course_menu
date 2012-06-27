@@ -23,105 +23,13 @@
 
 class block_course_menu_edit_form extends block_edit_form
 {
-    function definition() {
-        $mform =& $this->_form;
+    function definition_after_data() {
+        $mform = $this->_form;
 
-        // First show fields specific to this type of block.
-        $this->specific_definition($mform);
-
-        // Then show the fields about where this block appears.
-        $mform->addElement('header', 'whereheader', get_string('wherethisblockappears', 'block'));
-
-        // If the current weight of the block is out-of-range, add that option in.
-        $blockweight = $this->block->instance->weight;
-        $weightoptions = array();
-        if ($blockweight < -block_manager::MAX_WEIGHT) {
-            $weightoptions[$blockweight] = $blockweight;
+        if ($mform->getElementType('bui_contexts') == 'select') {
+            $el = $mform->getElement('bui_contexts');
+            $el->removeOption(2); // Remove 'whole site' option
         }
-        for ($i = -block_manager::MAX_WEIGHT; $i <= block_manager::MAX_WEIGHT; $i++) {
-            $weightoptions[$i] = $i;
-        }
-        if ($blockweight > block_manager::MAX_WEIGHT) {
-            $weightoptions[$blockweight] = $blockweight;
-        }
-        $first = reset($weightoptions);
-        $weightoptions[$first] = get_string('bracketfirst', 'block', $first);
-        $last = end($weightoptions);
-        $weightoptions[$last] = get_string('bracketlast', 'block', $last);
-
-        $regionoptions = $this->page->theme->get_all_block_regions();
-
-        $parentcontext = get_context_instance_by_id($this->block->instance->parentcontextid);
-        
-        $mform->addElement('hidden', 'bui_parentcontextid', $parentcontext->id);
-        
-        $contextoptions = array();
-        if ( ($parentcontext->contextlevel == CONTEXT_COURSE && $parentcontext->instanceid == SITEID) ||
-             ($parentcontext->contextlevel == CONTEXT_SYSTEM)) {        // Home page
-            $contextoptions[0] = get_string('showonfrontpageonly', 'block');
-            $contextoptions[1] = get_string('showonfrontpageandsubs', 'block');
-            //$contextoptions[2] = get_string('showonentiresite', 'block');
-        } else {
-            $parentcontextname = print_context_name($parentcontext);
-            $contextoptions[0] = get_string('showoncontextonly', 'block', $parentcontextname);
-            $contextoptions[1] = get_string('showoncontextandsubs', 'block', $parentcontextname);
-        }
-        $mform->addElement('select', 'bui_contexts', get_string('contexts', 'block'), $contextoptions);
-        
-        if ($this->page->pagetype == 'site-index') {   // No need for pagetype list on home page
-            $pagetypelist = array('*');
-        } else {
-            $pagetypelist = matching_page_type_patterns($this->page->pagetype);
-        }
-        $pagetypeoptions = array();
-        foreach ($pagetypelist as $pagetype) {         // Find human-readable names for the pagetypes
-            $pagetypeoptions[$pagetype] = $pagetype;
-            $pagetypestringname = 'page-'.str_replace('*', 'x',$pagetype);  // Better names MDL-21375
-            if (get_string_manager()->string_exists($pagetypestringname, 'pagetype')) {
-                $pagetypeoptions[$pagetype] .= ' (' . get_string($pagetypestringname, 'pagetype') . ')';
-            }
-        }
-        $mform->addElement('select', 'bui_pagetypepattern', get_string('restrictpagetypes', 'block'), $pagetypeoptions);
-
-        if ($this->page->subpage) {
-            $subpageoptions = array(
-                '%@NULL@%' => get_string('anypagematchingtheabove', 'block'),
-                $this->page->subpage => get_string('thisspecificpage', 'block', $this->page->subpage),
-            );
-            $mform->addElement('select', 'bui_subpagepattern', get_string('subpages', 'block'), $subpageoptions);
-        }
-
-        $defaultregionoptions = $regionoptions;
-        $defaultregion = $this->block->instance->defaultregion;
-        if (!array_key_exists($defaultregion, $defaultregionoptions)) {
-            $defaultregionoptions[$defaultregion] = $defaultregion;
-        }
-        $mform->addElement('select', 'bui_defaultregion', get_string('defaultregion', 'block'), $defaultregionoptions);
-
-        $mform->addElement('select', 'bui_defaultweight', get_string('defaultweight', 'block'), $weightoptions);
-
-        // Where this block is positioned on this page.
-        $mform->addElement('header', 'whereheader', get_string('onthispage', 'block'));
-
-        $mform->addElement('selectyesno', 'bui_visible', get_string('visible', 'block'));
-
-        $blockregion = $this->block->instance->region;
-        if (!array_key_exists($blockregion, $regionoptions)) {
-            $regionoptions[$blockregion] = $blockregion;
-        }
-        $mform->addElement('select', 'bui_region', get_string('region', 'block'), $regionoptions);
-
-        $mform->addElement('select', 'bui_weight', get_string('weight', 'block'), $weightoptions);
-
-        $pagefields = array('bui_visible', 'bui_region', 'bui_weight');
-        if (!$this->block->user_can_edit()) {
-            $mform->hardFreezeAllVisibleExcept($pagefields);
-        }
-        if (!$this->page->user_can_edit_blocks()) {
-            $mform->hardFreeze($pagefields);
-        }
-
-        $this->add_action_buttons();
     }
 
     protected function specific_definition($mform) {
