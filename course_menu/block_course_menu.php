@@ -206,23 +206,7 @@ class block_course_menu extends block_base
                         case 'tree': //build chapter / subchapter / topic / week structure
                             $lis .= $renderer->render_chapter_tree($this->instance->id, $this->config, $chapters, $sections, $displaysection, !$first);
                             break;
-                        case 'coursemainpage': //jump to current week
-                            if ($this->course->format == 'weeks' or $this->course->format == 'weekscss') {
-                                $highlight = ceil((time() - $this->course->startdate) / 604800);
-                                $format = 'week';
-                            } else if ($this->course->format == 'topics') {
-                                $highlight = $this->course->marker;
-                                $format = 'topic';
-                            }
-                            if ($displaysection != -1) {
-                                $element['name'] = get_string("coursemainpage", $this->blockname);
-                                $element['url'] = "{$CFG->wwwroot}/course/view.php?id={$this->course->id}";
-                                $lis .= $renderer->render_leaf($element['name'], $icon, array('id' => 'coursemainpage'), $element['url'], false, '', !$first);
-                            } else {
-                                $element['name'] = get_string('jumptocurrent' . $format, 'block_course_menu');
-                                $element['url'] = course_get_url($this->course, $highlight);
-                                $lis .= $renderer->render_leaf($element['name'], $icon, array('id' => 'coursemainpage'), $element['url'], false, '', !$first);
-                            }
+                        case 'coursemainpage': //this has been removed in Course Menu for Moodle 2.3
                             break;
                         case 'calendar':
                             $element['url'] = "$CFG->wwwroot/calendar/view.php?view=upcoming&course=" .$this->course->id;
@@ -324,14 +308,7 @@ class block_course_menu extends block_base
     	// elements -------------------------------------------------------------------------
     	$elements   = array();
    		$elements[] = $this->create_element("tree", $this->get_name("tree"), '', '', 0);
-	   		// coursemainpage
-   		$elements[] = $this->create_element(
-   			"coursemainpage",
-   			$this->get_name("coursemainpage"),
-   			"",
-   			"{$CFG->wwwroot}/blocks/course_menu/icons/viewall.gif"
-   		);
-
+	   	
 	   		// calendar
    		$elements[] = $this->create_element(
    			"calendar",
@@ -1001,11 +978,11 @@ class block_course_menu extends block_base
 
     function output_global_config() {
         global $CFG, $THEME, $OUTPUT;
-        
+		
         $icons = $this->get_link_icons();
 	    // if any config is missing then set eveything to default
     	if (empty($CFG->block_course_menu_global_config)) {
-        	$this->init_default_config(false);
+			$this->init_default_config(false);
         } else {
         	$this->config = @unserialize($CFG->block_course_menu_global_config);
             
@@ -1072,13 +1049,12 @@ class block_course_menu extends block_base
     
     function remove_deprecated()
     {
-        //showallsections has been replaced with "coursemainpage"
-        foreach ($this->config->elements as $k => $element) {
-            if ($element['id'] == 'showallsections') {
-                $this->config->elements[$k]['id'] = 'coursemainpage';
-                $this->config->elements[$k]['name'] = get_string('coursemainpage', $this->blockname);
-                if (!empty($this->instance) && !empty($this->instance->id)) {
-                    $this->save_config_to_db();
+        //showallsections has been removed
+		foreach ($this->config->elements as $k => $element) {
+            if ($element['id'] == 'showallsections' || $element['id'] == 'coursemainpage') {
+				array_slice ($this->config->elements, $k, 1);
+				if (!empty($this->instance) && !empty($this->instance->id)) {
+					$this->save_config_to_db();
                 }
                 return true;
             }
