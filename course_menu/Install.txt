@@ -1,0 +1,13 @@
+Installing the Course Menu block
+
+
+New install
+-----------
+1. Download the Course Menu block for your specific version of Moodle 
+2. Unpack the download file and copy the folder course_menu inside your Moodle blocks directory. 
+
+
+Update
+--------------------------------------------------
+1. Overwrite the files in the /blocks/course_menu directory with the new files.
+2. To finish the update clock on Settings block-> Site administration-> Notifications the block will be automatically updated.
