@@ -29,7 +29,6 @@ $courseid   = optional_param('courseid', 0, PARAM_INT);
 $name       = optional_param('name', '', PARAM_RAW);
 $url        = optional_param('url', '', PARAM_RAW);
 $frameset   = optional_param('frameset', 0, PARAM_RAW);
-$url = "http://www.google.ro";
 
 $urls = new moodle_url('/blocks/course_menu/link_with_navigation.php', array('courseid' => $courseid, 'name' => $name, 'url' => $url, 'frameset' => $frameset));
 $context = get_context_instance(CONTEXT_COURSE, $courseid);
@@ -42,7 +41,7 @@ if (empty($frameset)) { ?>
 	<head>
 	
 	<meta content="text/html; charset=utf-8" http-equiv="content-type" />
-	<title><?php echo $_REQUEST['name']; ?></title>
+	<title><?php echo $name; ?></title>
 	</head>
 	
 	<frameset rows="130,*">
@@ -53,7 +52,7 @@ if (empty($frameset)) { ?>
 
 <?php } elseif ($frameset == "top") { 
 
-	$course = $DB->get_record('course', array('id' => $_REQUEST['courseid']));
+	$course = $DB->get_record('course', array('id' => $courseid));
     $PAGE->set_course($course);
     $PAGE->set_title($name);
     $PAGE->navbar->add($name);
