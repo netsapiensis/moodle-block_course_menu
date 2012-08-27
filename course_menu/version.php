@@ -38,7 +38,7 @@ if ($blk !== false && is_object($blk)) {
     }
 }
 
-$plugin->version = 2012082702;
+$plugin->version = 2012082703;
 
 $plugin->component = 'block_course_menu';
 $plugin->release = '2.0.1';

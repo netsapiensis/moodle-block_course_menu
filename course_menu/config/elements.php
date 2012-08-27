@@ -29,7 +29,7 @@ $chapShow = $this->config->chapEnable ? 'i/hide' : 'i/show';
 $subChapShow = $this->config->subChapEnable ? 'i/hide' : 'i/show';
 if ($this->page->course->id == SITEID) {
     $elements = array ();
-    $allowed = array ('calendar', 'showgrades', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings');
+    $allowed = array ('calendar', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings');
     foreach ($this->config->elements as $element) {
         if (in_array($element['id'], $allowed) || substr($element['id'], 0, 4) == 'link') {
             $elements []= $element;
