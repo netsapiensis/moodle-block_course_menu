@@ -40,7 +40,7 @@ if (empty($frameset)) { ?>
 	<head>
 	
 	<meta content="text/html; charset=utf-8" http-equiv="content-type" />
-	<title><?php echo $_REQUEST['name']; ?></title>
+	<title><?php echo $name; ?></title>
 	</head>
 	
 	<frameset rows="130,*">
@@ -51,7 +51,7 @@ if (empty($frameset)) { ?>
 
 <?php } elseif ($frameset == "top") { 
 
-	$course = $DB->get_record('course', array('id' => $_REQUEST['courseid']));
+	$course = $DB->get_record('course', array('id' => $courseid));
     $PAGE->set_course($course);
     $PAGE->set_title($name);
     $PAGE->navbar->add($name);
