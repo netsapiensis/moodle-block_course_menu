@@ -156,4 +156,7 @@ $string['namesiteleveldescription'] = "Alternarive name to be shown in the block
 $string['dockedbg'] = "Bg. color in docked mode";
 $string['dockedbgdesc'] = "Background color for the block title when docked";
 $string['notapplicable'] = "Not applicable";
+
+$string['participants'] = 'Participants';
+$string['reports'] = 'Reports';
 ?>
