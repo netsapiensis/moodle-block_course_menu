@@ -40,7 +40,6 @@ function xmldb_block_course_menu_upgrade($oldversion, $block) {
         //foreach instance, remove gradebook and add new participants and reports links
         foreach ($DB->get_records('block_instances', array('blockname' => 'course_menu')) as $instance) {
             $config = unserialize(base64_decode($instance->configdata));
-            
             $save_it = block_course_menu_append_elements($config);
             if ($save_it) {
                 $instance->configdata = base64_encode(serialize($config));
@@ -69,14 +68,14 @@ function block_course_menu_append_elements(& $config)
         $config->elements []= block_course_menu_create_element(
             'participants', 
             get_string("participants", 'block_course_menu'), 
-            '', '', 1, 1, 1
+            '', '', 1, 0, 1
         );
 
         // reports
         $config->elements []= block_course_menu_create_element(
             'reports', 
             get_string("reports", 'block_course_menu'), 
-            '', '', 1, 1, 1
+            '', '', 1, 0, 1
         );
         $save_it = true;
     }

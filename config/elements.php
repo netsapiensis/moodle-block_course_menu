@@ -37,7 +37,6 @@ if ($this->page->course->id == SITEID) {
     }
     $this->config->elements = $elements;
 }
-
 ?>
 <div class="showHideCont">
     <a class="showHide chapters minus" id="hide-2" href="#" onclick="Config_Block_Course_Menu.section_hide(this, 'div_elements'); return false;">

@@ -97,7 +97,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 	
 	public function render_topic($config, $section, $depth = 0, $current = false)
 	{
-        if ($depth == 0) {
+		if ($depth == 0) {
 			$depth = $this->topic_depth;
 		}
 		global $OUTPUT;
@@ -105,24 +105,12 @@ class block_course_menu_renderer extends plugin_renderer_base {
 		if ($config->expandableTree) {
 			foreach ($section['resources'] as $resource) {
 				$visible_title = $resource['trimmed_name'];
-				$attributes = array('title' => $resource['name'], 'class' => '');
-                if (!$section['visible']) {
-                    $attributes['class'] .= 'dimmed_text';
-                }
+				$attributes = array('title' => $resource['name']);
 				$icon = $this->icon($resource['icon'], $resource['trimmed_name'], array('class' => 'smallicon navicon'));
 				$html .= $this->render_leaf($visible_title, $icon, $attributes, $resource['url']);
 			}
 			$html = html_writer::tag('ul', $html);
-            
-            $attributes = array('class' => 'item_name section_link', 'id' => 'block-course-menu-section-' . $section['index']);
-            if (!$section['visible']) {
-                $attributes['class'] .= ' dimmed_text';
-            }
-            if ($current) {
-                $attributes['class'] .= ' active_tree_node';
-            }
-            
-            $title = html_writer::link($section['url'], $section['trimmed_name'], $attributes);
+			$title = html_writer::link($section['url'], $section['trimmed_name'], array('class' => 'item_name section_link'));
 			$cl = '';
 			if ($current) {
 				$cl = "active_tree_node";
@@ -139,9 +127,9 @@ class block_course_menu_renderer extends plugin_renderer_base {
 			$html = html_writer::tag('li', $p . $html, array('class' => "type_structure contains_branch depth_{$depth} {$collapsed} {$append}"));
 			
 		} else {
-            $attributes = array('class' => 'section_link', 'title' => $section['name'], 'id' => 'block-course-menu-section-' . $section['index']);
+			$attributes = array('class' => 'section_link', 'title' => $section['name']);
 			if (!$section['visible']) {
-				$attributes['class'] .= ' dimmed_text';
+				$attributes['class'] .= 'dimmed_text';
 			}
             if ($current) {
                 $attributes['class'] .= ' active_tree_node';

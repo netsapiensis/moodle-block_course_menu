@@ -28,7 +28,6 @@ $string['pluginname'] = $string['blockname'] = 'Course Menu';
 $string['configgroupsections'] = 'Do you want to group week and topic sections in one folder?';
 $string['controlpanel'] = 'Control Panel';
 $string['courseduedatedesc'] = 'This link will enable you to change the due dates for activities that have due dates (like Assignments) and the open/close dates for quizzes and lessons.';
-$string['coursemainpage'] = 'Course main page';
 $string['courseprogramdesc'] = 'This link will allow you to hide and show course activities or entire topics based on calendar dates and the time.';
 $string['editcoursesettingsdesc'] = 'Use this link to edit your course settings such as the name of the course, the number of topic or week blocks, show the course to students or hide if from students, allow guests in or keep them out, and change the theme (colors and graphics) for the course.';
 $string['emaildesc'] = 'Use this link to send email to all or some of the students in your course.';
@@ -46,6 +45,7 @@ $string['passworddesc'] = 'Click this link to change your password.';
 $string['profiledesc'] = 'This link will let you change your personal information, upload a picture, change your password, etc.';
 $string['restoredesc'] = 'This link will allow you to restore a backed up course, either with data to the current course, or to another course you are a administrator of.';
 $string['scalesdesc'] = 'This link lets you set up custom grading scales (for instance: &quot;Great, Acceptable, Below Average, Unacceptable&quot;).';
+$string['showallsections'] = 'Show All Sections';
 $string['studentchangepassword'] = 'Click this link to change your password.';
 $string['studentcontrolpaneldesc'] = 'Use this link to see what the student\'s Control Panel looks like.';
 $string['studentcp'] = 'Student Control Panel';
@@ -109,9 +109,6 @@ $string['emptychapname'] = 'Chapter name cannot be empty!';
 $string['emptysubchapname'] = 'Sub-chapter name cannot be empty!';
 $string['warningsubchapenable'] = 'Warning! After enabling subchaptering a default grouping will occur. Do you wish to continue?';
 
-$string['jumptocurrentweek'] = 'Jump to current week';
-$string['jumptocurrenttopic'] = 'Jump to current topic';
-
 $string['keeppagenavigation'] = 'Keep page navigation visible on the same page';
 $string['allowresize'] = 'Allow the window to be resized';
 $string['allowscroll'] = 'Allow the window to be scrolled';
@@ -149,11 +146,17 @@ $string['myprofile'] = "My profile";
 $string['myprofilesettings'] = "My profile settings";
 $string['courseadministration'] = "Course administration";
 
+$string['showalltopics'] = 'Show All Topics';
+$string['showallweeks'] = 'Show All Weeks';
+$string['showonlyweek'] = 'Show only week';
+$string['showonlytopic'] = 'Show only topic';
+
 $string['namesitelevel'] = "Site level name";
 $string['namesiteleveldescription'] = "Alternarive name to be shown in the block header when displayed at the site level";
 $string['dockedbg'] = "Bg. color in docked mode";
 $string['dockedbgdesc'] = "Background color for the block title when docked";
 $string['notapplicable'] = "Not applicable";
+
 $string['participants'] = 'Participants';
 $string['reports'] = 'Reports';
 ?>
