@@ -98,7 +98,7 @@ class block_course_menu extends block_base
         }
 
         $sections = $this->get_sections();
-
+        
         $this->page->navigation->initialise();
         $navigation = array(clone($this->page->navigation));
         $node_collection = $navigation[0]->children;
@@ -615,8 +615,10 @@ class block_course_menu extends block_base
             $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
 
             $genericName = get_string("sectionname", 'format_' . $this->course->format);
-            $allSections = get_all_sections($this->course->id);
-
+            
+            $modinfo = get_fast_modinfo($this->course);
+            $allSections = $modinfo->get_section_info_all();
+            
             $sections = array();
             if ($this->course->format != 'social' && $this->course->format != 'scorm') {
                 foreach ($allSections as $k => $section) {
@@ -625,6 +627,9 @@ class block_course_menu extends block_base
                         if (!empty($section)) {
                             $newSec = array();
                             $newSec['visible'] = $section->visible;
+                            $newSec['uservisible'] = !empty($section->uservisible) ? $section->uservisible : 0;
+                            $newSec['availableinfo'] = !empty($section->availableinfo) ? $section->availableinfo : 0;
+                            $newSec['id'] = $section->section;
                             $newSec['index'] = $k;
 
                             if (!empty($section->name)) {
@@ -703,14 +708,18 @@ class block_course_menu extends block_base
                                                     }
                                                 }
                                             }
-                                            $newSec['resources'][] = $resource;
+                                            if ($section->uservisible) {
+                                                $newSec['resources'][] = $resource;
+                                            }
                                         }
                                     }
                                 }
                             }
+                            $showsection = $section->uservisible || 
+                                    ($section->visible && !$section->available && $section->showavailability);
                             //hide hidden sections from students if the course settings say that - bug #212
                             $coursecontext = get_context_instance(CONTEXT_COURSE, $this->course->id);
-                            if (!($section->visible == 0 && !has_capability('moodle/course:viewhiddensections', $coursecontext))) {
+                            if (!($section->visible == 0 && !has_capability('moodle/course:viewhiddensections', $coursecontext)) && $showsection) {
                                 $sections[] = $newSec;
                             }
                         }
