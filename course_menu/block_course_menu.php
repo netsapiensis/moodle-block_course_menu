@@ -536,43 +536,6 @@ class block_course_menu extends block_base
         }
     }
 
-    // truncates the description to fit within the given $max_size. Splitting on tags and \n's where possible
-    // @param $string: string to truncate
-    // @param $max_size: length of largest piece when done
-    // @param $trunc: string to append to truncated pieces
-    function truncate_description($string, $max_size = 20, $trunc = '...')
-    {
-        $split_tags = array('<br>', '<BR>', '<Br>', '<bR>', '</dt>', '</dT>', '</Dt>', '</DT>', '</p>', '</P>', '<BR />', '<br />', '<bR />', '<Br />');
-        $temp = $string;
-
-        foreach ($split_tags as $tag) {
-            list($temp) = explode($tag, $temp, 2);
-        }
-        $rstring = strip_tags($temp);
-
-        $rstring = html_entity_decode($rstring);
-
-        if (strlen($rstring) > $max_size) {
-            $rstring = chunk_split($rstring, ($max_size - strlen($trunc)), "\n");
-            $temp = explode("\n", $rstring);
-            // catches new lines at the beginning
-            if (trim($temp[0]) != '') {
-                $rstring = trim($temp[0]) . $trunc;
-            } else {
-                $rstring = trim($temp[1]) . $trunc;
-            }
-        }
-        if (strlen($rstring) > $max_size) {
-            $rstring = substr($rstring, 0, ($max_size - strlen($trunc))) . $trunc;
-        } elseif ($rstring == '') {
-            // we chopped everything off... lets fall back to a failsafe but harsher truncation
-            $rstring = substr(trim(strip_tags($string)), 0, ($max_size - strlen($trunc))) . $trunc;
-        }
-
-        // single quotes need escaping
-        return str_replace("'", "\\'", $rstring);
-    }
-
     function clearEnters($string)
     {
         $newstring = str_replace(chr(13), ' ', str_replace(chr(10), ' ', $string));
@@ -718,11 +681,10 @@ class block_course_menu extends block_base
                                             if (!strlen(trim($instancename))) {
                                                 $instancename = $mod->modfullname;
                                             }
-                                            $instancename = $this->truncate_description($instancename);
-
+                                            
                                             $resource = array();
                                             if ($mod->modname != 'resource') {
-                                                $resource['name'] = $this->truncate_description($instancename, 200);
+                                                $resource['name'] = $instancename;
                                                 $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
                                                 $icon = $OUTPUT->pix_url("icon", $mod->modname);
                                                 if (is_object($icon)) {
@@ -734,7 +696,7 @@ class block_course_menu extends block_base
                                                 require_once($CFG->dirroot . '/mod/resource/lib.php');
                                                 $info = resource_get_coursemodule_info($mod);
                                                 if (isset($info->icon)) {
-                                                    $resource['name'] = $this->truncate_description($info->name, 200);
+                                                    $resource['name'] = $info->name;
                                                     $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
                                                     $icon = $OUTPUT->pix_url("icon", $mod->modname);
                                                     if (is_object($icon)) {
@@ -743,7 +705,7 @@ class block_course_menu extends block_base
                                                         $resource['icon'] = '';
                                                     }
                                                 } else if (!isset($info->icon)) {
-                                                    $resource['name'] = $this->truncate_description($info->name, 200);
+                                                    $resource['name'] = $info->name;
                                                     $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
                                                     $icon = $OUTPUT->pix_url("icon", $mod->modname);
                                                     if (is_object($icon)) {
@@ -807,7 +769,6 @@ class block_course_menu extends block_base
 
     public function trim($str)
     {
-
         $mode = self::TRIM_RIGHT;
         $length = self::DEFAULT_TRIM_LENGTH;
         if (!empty($this->config->trimmode)) {
@@ -817,19 +778,17 @@ class block_course_menu extends block_base
             $length = (int) $this->config->trimlength;
         }
         $textlib = textlib_get_instance();
+        $str_length = $textlib->strlen($str);
+        if ($str_length <= ($length + 3)) {
+            return $str;
+        }
         switch ($mode) {
             case self::TRIM_RIGHT :
-                if ($textlib->strlen($str) > ($length + 3)) {
-                    return $this->trim_right($textlib, $str, $length);
-                }
+                return $this->trim_right($textlib, $str, $length);
             case self::TRIM_LEFT :
-                if ($textlib->strlen($str) > ($length + 3)) {
-                    return $this->trim_left($textlib, $str, $length);
-                }
+                return $this->trim_left($textlib, $str, $length);
             case self::TRIM_CENTER :
-                if ($textlib->strlen($str) > ($length + 3)) {
-                    return $this->trim_center($textlib, $str, $length);
-                }
+                return $this->trim_center($textlib, $str, $length);
         }
         return $str;
     }
