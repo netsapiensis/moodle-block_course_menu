@@ -63,7 +63,6 @@ class block_course_menu extends block_base
 
     function get_content()
     {
-
         global $CFG, $USER, $DB;
 
         if ($this->page->course->id == SITEID) {
@@ -93,12 +92,14 @@ class block_course_menu extends block_base
 
         $this->check_default_config();
 
-        if (!$this->element_exists('sitepages')) {
+        //newly added elements
+        //participatlist -> 2012-10-15
+        if (!$this->element_exists('sitepages') || !$this->element_exists('participantlist')) {
             $this->init_default_config();
         }
 
         $sections = $this->get_sections();
-        
+
         $this->page->navigation->initialise();
         $navigation = array(clone($this->page->navigation));
         $node_collection = $navigation[0]->children;
@@ -216,6 +217,18 @@ class block_course_menu extends block_base
                                 $_node = $node_collection->find($this->page->course->id, global_navigation::TYPE_COURSE)->children->get('participants');
                                 $lis .= $renderer->render_navigation_node($_node, $expansionlimit, !$first);
                             }
+                            break;
+                        case 'participantlist':
+                            //check capabilities
+                            // user/index.php expect course context, so get one if page has module context.
+                            $currentcontext = $this->page->context->get_course_context(false);
+                            if (empty($currentcontext) || 
+                                    ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', get_context_instance(CONTEXT_SYSTEM))) ||
+                                    !has_capability('moodle/course:viewparticipants', $currentcontext)) {
+                                break;
+                            }
+                            $element['url'] = $CFG->wwwroot . '/user/index.php?contextid=' . $currentcontext->id;
+                            $lis .= $renderer->render_leaf($element['name'], $icon, array(), $element['url'], false, '', !$first);
                             break;
                         case 'reports':
                             if ($node_collection instanceof navigation_node_collection) {
@@ -355,6 +368,11 @@ class block_course_menu extends block_base
                 'participants', get_string("participants", "{$this->blockname}"), '', '', 1, 0, 1
         );
 
+        // participant list
+        $elements [] = $this->create_element(
+                'participantlist', get_string('participantlist', $this->blockname), '', $OUTPUT->pix_url('i/users'), 1, 0, 1
+        );
+
         // reports
         $elements [] = $this->create_element(
                 'reports', get_string("reports", "{$this->blockname}"), '', '', 1, 0, 1
@@ -414,7 +432,7 @@ class block_course_menu extends block_base
     function check_default_config()
     {
         global $CFG;
-        
+
         if (empty($this->config) || !is_object($this->config) || (!$this->_site_level && empty($this->config->chapters))) {
             //try global config
             if ($this->_site_level) {
@@ -578,10 +596,10 @@ class block_course_menu extends block_base
             $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
 
             $genericName = get_string("sectionname", 'format_' . $this->course->format);
-            
+
             $modinfo = get_fast_modinfo($this->course);
             $allSections = $modinfo->get_section_info_all();
-            
+
             $sections = array();
             if ($this->course->format != 'social' && $this->course->format != 'scorm') {
                 foreach ($allSections as $k => $section) {
@@ -594,7 +612,7 @@ class block_course_menu extends block_base
                             $newSec['availableinfo'] = !empty($section->availableinfo) ? $section->availableinfo : 0;
                             $newSec['id'] = $section->section;
                             $newSec['index'] = $k;
-                            
+
                             if (!empty($section->name)) {
                                 $strsummary = trim($section->name);
                             } else {
@@ -619,7 +637,7 @@ class block_course_menu extends block_base
                                 $mod = $mods[$modnumber];
                                 if ($mod->visible or $canviewhidden) {
                                     $instancename = urldecode($modinfo[$modnumber]->name);
-                                    
+
                                     if (!empty($CFG->filterall)) {
                                         $instancename = filter_text($instancename, $this->course->id);
                                     }
@@ -631,7 +649,7 @@ class block_course_menu extends block_base
                                             if (!strlen(trim($instancename))) {
                                                 $instancename = $mod->modfullname;
                                             }
-                                            
+
                                             $resource = array();
                                             if ($mod->modname != 'resource') {
                                                 $resource['name'] = $instancename;
@@ -672,7 +690,7 @@ class block_course_menu extends block_base
                                     }
                                 }
                             }
-                            $showsection = $section->uservisible || 
+                            $showsection = $section->uservisible ||
                                     ($section->visible && !$section->available && $section->showavailability);
                             //hide hidden sections from students if the course settings say that - bug #212
                             $coursecontext = get_context_instance(CONTEXT_COURSE, $this->course->id);
@@ -733,7 +751,7 @@ class block_course_menu extends block_base
         }
 
         $str_length = textlib::strlen($str);
-        
+
         switch ($mode) {
             case self::TRIM_RIGHT :
                 if ($str_length > ($length + 3)) {
@@ -782,7 +800,7 @@ class block_course_menu extends block_base
         global $CFG, $USER, $OUTPUT;
 
         $this->course = $this->page->course;
-        if (!$this->element_exists('sitepages')) {
+        if (!$this->element_exists('sitepages') || !$this->element_exists('participantlist')) {
             $this->init_default_config();
         }
 
@@ -949,7 +967,7 @@ class block_course_menu extends block_base
         } else {
             $this->config = @unserialize($CFG->block_course_menu_global_config);
 
-            if (!$this->element_exists('sitepages')) {
+            if (!$this->element_exists('sitepages') || !$this->element_exists('participantlist')) {
                 $this->init_default_config(false);
             } else {
                 if ($this->remove_deprecated()) {

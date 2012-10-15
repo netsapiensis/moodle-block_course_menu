@@ -52,7 +52,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 				$cl = "";
 				if ($child['type'] == 'subchapter') {
 					for ($i = 0; $i < $child['count']; $i++) {
-						$topic .= $this->render_topic($config, $sections[$sectionIndex], 0, $displaysection == $sectionIndex + 1);
+						$topic .= $this->render_topic($config, $sections[$sectionIndex], 0, $displaysection == $sections[$sectionIndex]['id']);
 						$sectionIndex++;
 					}
 					if ($config->subChapEnable) {
@@ -70,7 +70,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 					if ($config->subChapEnable) {
 						$d--;
 					}
-					$topic = $this->render_topic($config, $sections[$sectionIndex], $d, $displaysection == $sectionIndex + 1);
+					$topic = $this->render_topic($config, $sections[$sectionIndex], $d, $displaysection == $sections[$sectionIndex]['id']);
 					$sectionIndex++;
 				}
 				$subchapter .= $topic;
@@ -100,13 +100,14 @@ class block_course_menu_renderer extends plugin_renderer_base {
         if ($depth == 0) {
 			$depth = $this->topic_depth;
 		}
-		global $OUTPUT;
+        
+        global $OUTPUT;
 		$html = '';
 		if ($config->expandableTree) {
 			foreach ($section['resources'] as $resource) {
 				$visible_title = $resource['trimmed_name'];
 				$attributes = array('title' => $resource['name'], 'class' => '');
-                if (!$section['visible']) {
+                if (!$section['visible'] || (!$section['uservisible'] || $section['availableinfo'])) {
                     $attributes['class'] .= 'dimmed_text';
                 }
 				$icon = $this->icon($resource['icon'], $resource['trimmed_name'], array('class' => 'smallicon navicon'));
@@ -115,7 +116,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 			$html = html_writer::tag('ul', $html);
             
             $attributes = array('class' => 'item_name section_link', 'id' => 'block-course-menu-section-' . $section['index']);
-            if (!$section['visible']) {
+            if (!$section['visible'] || (!$section['uservisible'] || $section['availableinfo'])) {
                 $attributes['class'] .= ' dimmed_text';
             }
             if ($current) {
@@ -140,7 +141,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 			
 		} else {
             $attributes = array('class' => 'section_link', 'title' => $section['name'], 'id' => 'block-course-menu-section-' . $section['index']);
-			if (!$section['visible']) {
+			if (!$section['visible'] || (!$section['uservisible'] || $section['availableinfo'])) {
 				$attributes['class'] .= ' dimmed_text';
 			}
             if ($current) {
