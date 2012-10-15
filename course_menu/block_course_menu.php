@@ -91,12 +91,14 @@ class block_course_menu extends block_base
 
         $this->check_default_config();
 
-        if (!$this->element_exists('sitepages')) {
+        //newly added elements
+        //participatlist -> 2012-10-15
+        if (!$this->element_exists('sitepages') || !$this->element_exists('participantlist')) {
             $this->init_default_config();
         }
 
-        $sections = $this->get_sections();
-
+		$sections = $this->get_sections();
+		
         // courseFormat
         $courseFormat = $this->course->format == 'topics' ? 'topic' : 'week';
 
@@ -241,6 +243,18 @@ class block_course_menu extends block_base
                                 $lis .= $renderer->render_navigation_node($_node, $expansionlimit, !$first);
                             }
                             break;
+                        case 'participantlist':
+                            //check capabilities
+                            // user/index.php expect course context, so get one if page has module context.
+                            $currentcontext = $this->page->context->get_course_context(false);
+                            if (empty($currentcontext) || 
+                                    ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', get_context_instance(CONTEXT_SYSTEM))) ||
+                                    !has_capability('moodle/course:viewparticipants', $currentcontext)) {
+                                break;
+                            }
+                            $element['url'] = $CFG->wwwroot . '/user/index.php?contextid=' . $currentcontext->id;
+                            $lis .= $renderer->render_leaf($element['name'], $icon, array(), $element['url'], false, '', !$first);
+                            break;
                         case 'reports':
                             if ($node_collection instanceof navigation_node_collection) {
                                 $_course = $node_collection->find($this->page->course->id, global_navigation::TYPE_COURSE)->children;
@@ -383,6 +397,11 @@ class block_course_menu extends block_base
         // participants
         $elements [] = $this->create_element(
                 'participants', get_string("participants", "{$this->blockname}"), '', '', 1, 0, 1
+        );
+
+        // participant list
+        $elements [] = $this->create_element(
+                'participantlist', get_string('participantlist', $this->blockname), '', $OUTPUT->pix_url('i/users'), 1, 0, 1
         );
 
         // reports
@@ -859,7 +878,7 @@ class block_course_menu extends block_base
         global $CFG, $USER, $OUTPUT;
 
         $this->course = $this->page->course;
-        if (!$this->element_exists('sitepages')) {
+        if (!$this->element_exists('sitepages') || !$this->element_exists('participantlist')) {
             $this->init_default_config();
         }
 
@@ -1026,7 +1045,8 @@ class block_course_menu extends block_base
             $this->init_default_config(false);
         } else {
             $this->config = @unserialize($CFG->block_course_menu_global_config);
-            if (!$this->element_exists('sitepages')) {
+
+            if (!$this->element_exists('sitepages') || !$this->element_exists('participantlist')) {
                 $this->init_default_config(false);
             }
         }
