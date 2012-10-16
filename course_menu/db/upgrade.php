@@ -21,7 +21,8 @@
  * ---------------------------------------------------------------------------------------------------------------------
  */
 
-function xmldb_block_course_menu_upgrade($oldversion, $block) {
+function xmldb_block_course_menu_upgrade($oldversion, $block)
+{
     global $DB, $CFG;
     
     if ($oldversion <= 2012082702) {
@@ -40,12 +41,34 @@ function xmldb_block_course_menu_upgrade($oldversion, $block) {
         //foreach instance, remove gradebook and add new participants and reports links
         foreach ($DB->get_records('block_instances', array('blockname' => 'course_menu')) as $instance) {
             $config = unserialize(base64_decode($instance->configdata));
+
             $save_it = block_course_menu_append_elements($config);
             if ($save_it) {
                 $instance->configdata = base64_encode(serialize($config));
                 $DB->update_record('block_instances', $instance);
             }
         }   
+    } elseif ($oldversion <= 2012101500) {
+        //remove gradebooks element - this might be present from prev versions
+        if (!empty($CFG->block_course_menu_global_config)) { //first, remove it from the global config element
+            $config = unserialize($CFG->block_course_menu_global_config);
+            $save_it = block_course_menu_append_elements($config);
+
+            if ($save_it) {
+                set_config('block_course_menu_global_config', serialize($config));
+            }
+        }
+
+        //foreach instance, remove gradebook and add new participants and reports links
+        foreach ($DB->get_records('block_instances', array('blockname' => 'course_menu')) as $instance) {
+            $config = unserialize(base64_decode($instance->configdata));
+
+            $save_it = block_course_menu_append_elements($config);
+            if ($save_it) {
+                $instance->configdata = base64_encode(serialize($config));
+                $DB->update_record('block_instances', $instance);
+            }
+        }
     }
     return true;
 }
@@ -54,7 +77,7 @@ function block_course_menu_append_elements(& $config)
 {
     $save_it = false;
     foreach ($config->elements as $index => $element) { 
-        if (!empty($element['id']) && $element['id'] == 'showgrades') {
+        if (!empty($element['id']) && ($element['id'] == 'showgrades' || $element['id'] == 'participantlist'))  {
             array_splice($config->elements, $index, 1);
             $save_it = true;
         }
