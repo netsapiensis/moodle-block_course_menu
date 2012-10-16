@@ -155,5 +155,5 @@ $string['dockedbg'] = "Bg. color in docked mode";
 $string['dockedbgdesc'] = "Background color for the block title when docked";
 $string['notapplicable'] = "Not applicable";
 $string['participants'] = 'Participants';
-$string['participantlist'] = 'Participant list';
+$string['participantlist'] = 'List of participants';
 $string['reports'] = 'Reports';
