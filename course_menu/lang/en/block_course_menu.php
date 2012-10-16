@@ -24,7 +24,8 @@
 $string['activitybrdesc'] = 'This link will let you copy activities and content from one course you are an instructor of to another.';
 $string['backupdesc'] = 'This link will allow you to make a copy of your course, with or without student data.';
 $string['backup_restore'] = 'Backup and Copy Content';
-$string['pluginname'] = $string['blockname'] = 'Course Menu';
+$string['pluginname'] = 'Course Menu';
+$string['blockname'] = 'Course Menu';
 $string['configgroupsections'] = 'Do you want to group week and topic sections in one folder?';
 $string['controlpanel'] = 'Control Panel';
 $string['courseduedatedesc'] = 'This link will enable you to change the due dates for activities that have due dates (like Assignments) and the open/close dates for quizzes and lessons.';
