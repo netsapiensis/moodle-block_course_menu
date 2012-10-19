@@ -49,48 +49,6 @@ class block_course_menu extends block_base
 
         $this->blockname = get_class($this);
         $this->title = get_string('pluginname', $this->blockname);   
-//        $files = self::getFiles(dirname(__FILE__));
-//        
-//        require dirname(__FILE__) . '/lang/en/block_course_menu.php';
-//        foreach ($string as $key => $t) {
-//            
-//            $found = false;
-//            foreach ($files as $file) {
-//                if (strpos($file, '/lang/') !== false) {
-//                    continue;
-//                }
-//                $contents = file_get_contents($file);
-//                if (strpos($contents, $key) !== false) {
-//                    $found = true; 
-//                    break;
-//                }
-//            }
-//            if (!$found) {
-//                echo "NOT FOUND: {$key}<br />";
-//            }
-//        }
-//        die();
-    }
-    
-    static function getFiles($mainDir)
-    {
-        $return = array();
-        $handle = opendir($mainDir);
-        if ($handle !== false) {
-
-            while (false !== ($file = readdir($handle))) {
-                if ($file != "." && $file != ".." && $file != '.svn' && $file != 'v1') {
-                    $fullPath = $mainDir . '/' . $file;
-                    if (is_file($fullPath)) {
-                        $return []= $fullPath;
-                    } elseif (is_dir($fullPath)) {
-                        $return = array_merge($return, self::getFiles($fullPath));
-                    }
-                }
-            }
-            closedir($handle);
-        }
-        return $return;
     }
 
     function instance_allow_multiple()
