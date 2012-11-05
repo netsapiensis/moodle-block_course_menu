@@ -45,8 +45,6 @@ class block_course_menu extends block_base
 
     function init()
     {
-        global $CFG;
-
         $this->blockname = get_class($this);
         $this->title = get_string('pluginname', $this->blockname);   
     }
@@ -159,7 +157,7 @@ class block_course_menu extends block_base
             }
         }
 
-        $this->page->requires->yui2_lib('dom');
+//        $this->page->requires->yui2_lib('dom');
 
         $module = array('name' => 'block_course_menu', 'fullpath' => '/blocks/course_menu/course_menu.js', 'requires' => array('core_dock', 'io', 'node', 'dom', 'event-custom', 'json-parse'), 'strings' => array(array('viewallcourses', 'moodle')));
         $limit = 20;
@@ -588,15 +586,15 @@ class block_course_menu extends block_base
         if (!empty($this->instance) && $this->page->course->id != SITEID) {
 
             require_once($CFG->dirroot . "/course/lib.php");
-            get_all_mods($this->course->id, $mods, $modnames, $modnamesplural, $modnamesused);
-
+            
             $context = get_context_instance(CONTEXT_COURSE, $this->course->id);
-
             $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
 
             $genericName = get_string("sectionname", 'format_' . $this->course->format);
-
-            $modinfo = get_fast_modinfo($this->course);
+            
+            $modinfo = get_fast_modinfo($this->page->course);
+            $mods = $modinfo->get_cms();
+            
             $allSections = $modinfo->get_section_info_all();
 
             $sections = array();
@@ -618,15 +616,11 @@ class block_course_menu extends block_base
                                 $strsummary = ucwords($genericName) . " " . $k; // just a default name
                             }
 
-                            $strsummary = $this->trim($strsummary);
-                            $strsummary = trim($this->clearEnters($strsummary));
+                            $strsummary = $this->trim($strsummary);                            
                             $newSec['name'] = $strsummary;
-
                             $newSec['url'] = course_get_url($this->course, $k);
 
                             // resources
-                            $modinfo = unserialize($this->course->modinfo);
-
                             $newSec['resources'] = array();
                             $sectionmods = explode(",", $section->sequence);
                             foreach ($sectionmods as $modnumber) {
@@ -635,7 +629,7 @@ class block_course_menu extends block_base
                                 }
                                 $mod = $mods[$modnumber];
                                 if ($mod->visible or $canviewhidden) {
-                                    $instancename = urldecode($modinfo[$modnumber]->name);
+                                    $instancename = urldecode($modinfo->cms[$modnumber]->name);
 
                                     if (!empty($CFG->filterall)) {
                                         $instancename = filter_text($instancename, $this->course->id);
