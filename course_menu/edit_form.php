@@ -1,4 +1,5 @@
 <?php
+
 /*
  * ---------------------------------------------------------------------------------------------------------------------
  *
@@ -23,24 +24,27 @@
 
 class block_course_menu_edit_form extends block_edit_form
 {
-    
-    function definition_after_data() {
-        
+
+    function definition_after_data()
+    {
+
         $mform = $this->_form;
         if ($mform->getElementType('bui_contexts') == 'select') {
             $el = $mform->getElement('bui_contexts');
             $el->removeOption(2); // Remove 'whole site' option
-         }
+        }
     }
-    
-    protected function specific_definition($mform) {
-        global $CFG;
-        $mform->addElement('header', 'configheader', get_string('blockgeneralsettings', $this->block->blockname));
+
+    protected function specific_definition($mform)
+    {
+        global $CFG, $PAGE;
         
+        $mform->addElement('header', 'configheader', get_string('blockgeneralsettings', $this->block->blockname));
+
         $options = array(
-            block_course_menu::TRIM_RIGHT   => get_string('trimmoderight', $this->block->blockname),
-            block_course_menu::TRIM_LEFT    => get_string('trimmodeleft', $this->block->blockname),
-            block_course_menu::TRIM_CENTER  => get_string('trimmodecenter', $this->block->blockname)
+            block_course_menu::TRIM_RIGHT => get_string('trimmoderight', $this->block->blockname),
+            block_course_menu::TRIM_LEFT => get_string('trimmodeleft', $this->block->blockname),
+            block_course_menu::TRIM_CENTER => get_string('trimmodecenter', $this->block->blockname)
         );
         $mform->addElement('select', 'config_trimmode', get_string('trimmode', $this->block->blockname), $options);
         $mform->setType('config_trimmode', PARAM_INT);
@@ -69,6 +73,7 @@ class block_course_menu_edit_form extends block_edit_form
         $mform->addElement('hidden', 'config_linksEnable', '', array('id' => 'id_config_linksEnable'));
         $mform->setDefault('config_linksEnable', 0);
         $mform->addElement('html', $this->block->config_links());
+        
     }
-    
+
 }

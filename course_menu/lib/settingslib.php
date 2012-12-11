@@ -21,7 +21,7 @@
  * ---------------------------------------------------------------------------------------------------------------------
  */
 
-class admin_setting_confightml extends admin_setting {
+class block_cm_admin_setting_confightml extends admin_setting {
 
     public $html;
 
@@ -142,4 +142,3 @@ class admin_setting_confightml extends admin_setting {
         return $this->html;
     }
 }
-?>

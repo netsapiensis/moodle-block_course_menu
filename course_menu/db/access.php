@@ -1,4 +1,5 @@
 <?php
+
 /*
  * ---------------------------------------------------------------------------------------------------------------------
  *
@@ -21,9 +22,19 @@
  * ---------------------------------------------------------------------------------------------------------------------
  */
 
-$plugin->version = 2012121101;
+defined('MOODLE_INTERNAL') || die();
 
-$plugin->component  = 'block_course_menu';
-$plugin->release    = '2.3.0';
-$plugin->requires   = 2012062500; // Moodle 2.3
-$plugin->maturity   = MATURITY_STABLE;
+$capabilities = array(
+    'block/course_menu:addinstance' => array(
+        'riskbitmask' => RISK_SPAM | RISK_XSS,
+
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_BLOCK,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+
+        'clonepermissionsfrom' => 'moodle/site:manageblocks'
+    ),
+);

@@ -46,7 +46,7 @@ class block_course_menu extends block_base
     function init()
     {
         $this->blockname = get_class($this);
-        $this->title = get_string('pluginname', $this->blockname);   
+        $this->title = get_string('pluginname', $this->blockname);
     }
 
     function instance_allow_multiple()
@@ -59,8 +59,47 @@ class block_course_menu extends block_base
         return true;
     }
 
+    /**
+     * Gets Javascript that may be required for navigation
+     */
+    function load_all_js($expandable)
+    {
+        global $CFG;
+        user_preference_allow_ajax_update('docked_block_instance_' . $this->instance->id, PARAM_INT);
+        $this->page->requires->js_module('core_dock');
+        $limit = 20;
+        if (!empty($CFG->navcourselimit)) {
+            $limit = $CFG->navcourselimit;
+        }
+        $expansionlimit = 0;
+        if (!empty($this->config->expansionlimit)) {
+            $expansionlimit = $this->config->expansionlimit;
+        }
+        if (!empty($CFG->block_course_menu_docked_background)) {
+            $bg_color = $CFG->block_course_menu_docked_background;
+        } else {
+            $bg_color = self::DEFAULT_DOCKED_BG;
+        }
+        $arguments = array(
+            'id' => $this->instance->id,
+            'instance' => $this->instance->id,
+            'candock' => $this->instance_can_be_docked(),
+            'courselimit' => $limit,
+            'expansionlimit' => $expansionlimit,
+            'bg_color' => $bg_color,
+            'expansions' => $expandable
+        );
+        
+        $this->page->requires->string_for_js('viewallcourses', 'moodle');
+        $this->page->requires->yui_module(array('core_dock', 'moodle-block_course_menu-navigation'), 'M.block_course_menu.init_add_tree', array($arguments));
+    }
+
     function get_content()
     {
+        if ($this->contentgenerated) {
+            return $this->content;
+        }
+        
         global $CFG, $USER, $DB, $OUTPUT;
 
         if ($this->page->course->id == SITEID) {
@@ -70,10 +109,6 @@ class block_course_menu extends block_base
                 $this->title = self::DEFAULT_SITE_LEVEL_TITLE;
             }
             $this->_site_level = 1;
-        }
-
-        if ($this->contentgenerated) {
-            return $this->content;
         }
 
         $this->content = new stdClass();
@@ -156,30 +191,8 @@ class block_course_menu extends block_base
                 }
             }
         }
-
-//        $this->page->requires->yui2_lib('dom');
-
-        $module = array('name' => 'block_course_menu', 'fullpath' => '/blocks/course_menu/course_menu.js', 'requires' => array('core_dock', 'io', 'node', 'dom', 'event-custom', 'json-parse'), 'strings' => array(array('viewallcourses', 'moodle')));
-        $limit = 20;
-
-        if (!empty($CFG->block_course_menu_docked_background)) {
-            $bg_color = $CFG->block_course_menu_docked_background;
-        } else {
-            $bg_color = self::DEFAULT_DOCKED_BG;
-        }
-
-        $arguments = array(
-            $this->instance->id,
-            array(
-                'expansions' => $expandable,
-                'instance' => $this->instance->id,
-                'candock' => $this->instance_can_be_docked(),
-                'courselimit' => $limit,
-                'docked' => $this->_docked,
-                'bg_color' => $bg_color
-            )
-        );
-        $this->page->requires->js_init_call('M.block_course_menu.init_add_tree', $arguments, false, $module);
+        
+        $this->load_all_js($expandable);
 
         //render output
         $renderer = $this->page->get_renderer('block_course_menu');
@@ -216,17 +229,17 @@ class block_course_menu extends block_base
                                 //check capabilities
                                 // user/index.php expect course context, so get one if page has module context.
                                 $currentcontext = $this->page->context->get_course_context(false);
-                                if (! (empty($currentcontext) || 
+                                if (!(empty($currentcontext) ||
                                         ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', get_context_instance(CONTEXT_SYSTEM))) ||
                                         !has_capability('moodle/course:viewparticipants', $currentcontext))) {
-                                    
+
                                     $element['url'] = $CFG->wwwroot . '/user/index.php?contextid=' . $currentcontext->id;
                                     $child_node = new navigation_node(array(
                                         'text' => get_string('participantlist', $this->blockname),
                                         'shorttext' => get_string('participantlist', $this->blockname),
                                         'icon' => new pix_icon('i/users', get_string('participantlist', $this->blockname)),
                                         'action' => $element['url']
-                                    ));
+                                            ));
                                     $_node->add_node($child_node, 0);
                                 }
                                 $lis .= $renderer->render_navigation_node($_node, $expansionlimit, !$first);
@@ -264,7 +277,6 @@ class block_course_menu extends block_base
                                     }
                                     $all = $node_collection->type($type);
                                     $good = array();
-
                                     if (is_array($all) && count($all)) {
                                         foreach ($all as $item) {
                                             if ($item->text == get_string($element['id'])) {
@@ -273,7 +285,7 @@ class block_course_menu extends block_base
                                             }
                                         }
                                     }
-                                    if ($good instanceof navigation_node && $good->children->count()) {
+                                    if ($good instanceof navigation_node) {
                                         $lis .= $renderer->render_navigation_node($good, $expansionlimit, !$first);
                                     }
                                 } elseif ($this->is_settings_element($element['id'])) {
@@ -296,7 +308,7 @@ class block_course_menu extends block_base
                                             }
                                         }
                                     }
-                                    if ($s instanceof navigation_node && $s->children->count()) {
+                                    if ($s instanceof navigation_node) {
                                         $lis .= $renderer->render_navigation_node($s, $expansionlimit, !$first);
                                     }
                                 }
@@ -315,13 +327,14 @@ class block_course_menu extends block_base
         return $this->content;
     }
 
-    public function find_expandable($navigation, array &$expandable)
+    public function find_expandable(& $navigation, array &$expandable)
     {
         foreach ($navigation->children as &$child) {
-            if ($child->nodetype == global_navigation::NODETYPE_BRANCH && $child->children->count() == 0 && $child->display) {
+            if ($child->display && $child->has_children() && $child->children->count() == 0) {
                 $child->id = 'cm_expandable_branch_' . (count($expandable) + 1);
+                $child->skip_record_events = true;
                 $navigation->add_class('canexpand');
-                $expandable[] = array('id' => $child->id, 'branchid' => $child->key, 'type' => $child->type);
+                $expandable[] = array('id' => $child->id, 'key' => $child->key, 'type' => $child->type);
             }
             $this->find_expandable($child, $expandable);
         }
@@ -337,7 +350,7 @@ class block_course_menu extends block_base
 
         // calendar
         $elements[] = $this->create_element(
-                "calendar", $this->get_name("calendar"), "", "{$CFG->wwwroot}/blocks/course_menu/icons/cal.gif", 1, 0
+                "calendar", $this->get_name("calendar"), "", $OUTPUT->pix_url('i/ical'), 1, 0
         );
 
         //site pages
@@ -586,22 +599,24 @@ class block_course_menu extends block_base
         if (!empty($this->instance) && $this->page->course->id != SITEID) {
 
             require_once($CFG->dirroot . "/course/lib.php");
-            
+
             $context = get_context_instance(CONTEXT_COURSE, $this->course->id);
             $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
 
             $genericName = get_string("sectionname", 'format_' . $this->course->format);
-            
+
             $modinfo = get_fast_modinfo($this->page->course);
             $mods = $modinfo->get_cms();
-            
+            //keep backwards compatibillity with moodle 2.3
+            if (!isset($this->course->numsections) && function_exists('course_get_format')) {
+                $this->course = course_get_format($this->course)->get_course();
+            }
             $allSections = $modinfo->get_section_info_all();
-
             $sections = array();
             if ($this->course->format != 'social' && $this->course->format != 'scorm') {
                 foreach ($allSections as $k => $section) {
 
-                    if ($k <= $this->course->numsections) { // get_all_sections() may return sections that are in the db but not displayed because the number of the sections for this course was lowered - bug [CM-B10]
+                    if (! isset($this->course->numsections) || $k <= $this->course->numsections) {
                         if (!empty($section)) {
                             $newSec = array();
                             $newSec['visible'] = $section->visible;
@@ -616,7 +631,7 @@ class block_course_menu extends block_base
                                 $strsummary = ucwords($genericName) . " " . $k; // just a default name
                             }
 
-                            $strsummary = $this->trim($strsummary);                            
+                            $strsummary = $this->trim($strsummary);
                             $newSec['name'] = $strsummary;
                             $newSec['url'] = course_get_url($this->course, $k);
 

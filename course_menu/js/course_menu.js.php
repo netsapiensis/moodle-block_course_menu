@@ -70,71 +70,32 @@ var Config_Block_Course_Menu = ( typeof Config_Block_Course_Menu != 'undefined' 
     otherInfo: {}
 }
 
-Config_Block_Course_Menu.otherInfo.imgHide = "<?php echo $CFG->wwwroot.'/pix/i/hide.gif'; ?>";
-Config_Block_Course_Menu.otherInfo.imgShow = "<?php echo $CFG->wwwroot.'/pix/i/show.gif'; ?>";
+Config_Block_Course_Menu.otherInfo.imgHide = "<?php echo $OUTPUT->pix_url('i/hide'); ?>";
+Config_Block_Course_Menu.otherInfo.imgShow = "<?php echo $OUTPUT->pix_url('i/show'); ?>";
+Config_Block_Course_Menu.otherInfo.imgUp   = "<?php echo $OUTPUT->pix_url('t/up'); ?>";
+Config_Block_Course_Menu.otherInfo.imgRight = "<?php echo $OUTPUT->pix_url('t/right'); ?>";
+Config_Block_Course_Menu.otherInfo.imgLeft = "<?php echo $OUTPUT->pix_url('t/left'); ?>";
+Config_Block_Course_Menu.otherInfo.imgDown = "<?php echo $OUTPUT->pix_url('t/down'); ?>";
+Config_Block_Course_Menu.otherInfo.imgEdit = "<?php echo $OUTPUT->pix_url('i/edit'); ?>";
 
-Config_Block_Course_Menu.otherInfo.imgUp   = "<?php echo $CFG->wwwroot.'/pix/t/up.gif'; ?>";
-Config_Block_Course_Menu.otherInfo.imgRight = "<?php echo $CFG->wwwroot.'/pix/t/right.gif'; ?>";
-Config_Block_Course_Menu.otherInfo.imgLeft = "<?php echo $CFG->wwwroot.'/pix/t/left.gif'; ?>";
-Config_Block_Course_Menu.otherInfo.imgDown = "<?php echo $CFG->wwwroot.'/pix/t/down.gif'; ?>";
-
-Config_Block_Course_Menu.otherInfo.imgEdit = "<?php echo $CFG->wwwroot.'/pix/i/edit.gif'; ?>";
 <?php if (!empty($this->course)) : ?>
     Config_Block_Course_Menu.otherInfo.courseFormat = "<?php echo $this->course->format == 'topics' ? get_string('topics', 'block_course_menu') : get_string('weeks', 'block_course_menu'); ?>"
 <?php else : ?>
     Config_Block_Course_Menu.otherInfo.courseFormat = "";
 <?php endif ?>
     
-Config_Block_Course_Menu.otherInfo.txt = new Object();
-Config_Block_Course_Menu.otherInfo.txt.chaptering          = "<?php print_string('chaptering', 'block_course_menu'); ?>";
-//subchapters
-Config_Block_Course_Menu.otherInfo.txt.subchaptering       = "<?php print_string('subchaptering', 'block_course_menu'); ?>";
-//end subchapters
-Config_Block_Course_Menu.otherInfo.txt.numberofchapter     = "<?php print_string('numberofchapter', 'block_course_menu'); ?>: ";
-Config_Block_Course_Menu.otherInfo.txt.numberofsubchapter  = "<?php print_string('numberofsubchapter', 'block_course_menu'); ?>: ";
-Config_Block_Course_Menu.otherInfo.txt.change              = "<?php print_string('change', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.defaultgrouping     = "<?php print_string('defaultgrouping', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.chapters            = "<?php print_string('chapters', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.chapter             = "<?php print_string('chapter', 'block_course_menu') ?> ";
-Config_Block_Course_Menu.otherInfo.txt.subchapter          = "<?php print_string('subchapter', 'block_course_menu') ?> ";
-Config_Block_Course_Menu.otherInfo.txt.subchapters         = "<?php print_string('subchapters', 'block_course_menu') ?> ";
-Config_Block_Course_Menu.otherInfo.txt.wrongnumber         = "<?php print_string('wrongnumber', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.wrongsubchapnumber  = "<?php print_string('wrongsubchapnumber', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.warningchapnochange = "<?php print_string('warningchapnochange', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.warningsubchapnochange = "<?php print_string('warningsubchapnochange', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.activatecustomlinks = "<?php print_string('activatecustomlinks', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.numberoflinks       = "<?php print_string('numberoflinks', 'block_course_menu'); ?>: ";
-Config_Block_Course_Menu.otherInfo.txt.change              = "<?php print_string('change', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.customlink          = "<?php print_string('customlink', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.name                = "<?php print_string('name', 'block_course_menu'); ?>:";
-Config_Block_Course_Menu.otherInfo.txt.url                 = "<?php print_string('url', 'block_course_menu'); ?>:";
-Config_Block_Course_Menu.otherInfo.txt.window              = "<?php print_string('window', 'block_course_menu'); ?>:"
-Config_Block_Course_Menu.otherInfo.txt.samewindow          = "<?php print_string('samewindow', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.newwindow           = "<?php print_string('newwindow', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.icon                = "<?php print_string('icon', 'block_course_menu'); ?>:";
-Config_Block_Course_Menu.otherInfo.txt.linkswrongnumber    = "<?php print_string('linkswrongnumber', 'block_course_menu'); ?>";
-Config_Block_Course_Menu.otherInfo.txt.customlink          = "<?php print_string('customlink', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.correcturlmsg       = "<?php print_string('correcturlmsg', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.cannotmoveright     = "<?php print_string('cannotmoveright', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.emptychapname       = "<?php print_string('emptychapname', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.emptysubchapname    = "<?php print_string('emptysubchapname', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.warningsubchapenable= "<?php print_string('warningsubchapenable', 'block_course_menu'); ?> ";
-
-Config_Block_Course_Menu.otherInfo.txt.keeppagenavigation  = "<?php print_string('keeppagenavigation', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.allowresize         = "<?php print_string('allowresize', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.allowscroll         = "<?php print_string('allowscroll', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.showdirectorylinks  = "<?php print_string('showdirectorylinks', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.showlocationbar     = "<?php print_string('showlocationbar', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.showmenubar         = "<?php print_string('showmenubar', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.showtoolbar         = "<?php print_string('showtoolbar', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.showstatusbar       = "<?php print_string('showstatusbar', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.defaultwidth        = "<?php print_string('defaultwidth', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.defaultheight       = "<?php print_string('defaultheight', 'block_course_menu'); ?> ";
-
-Config_Block_Course_Menu.otherInfo.txt.linknoname          = "<?php print_string('linknoname', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.linknourl           = "<?php print_string('linknourl', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.cannotmovetopicup   = "<?php print_string('cannotmovetopicup', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.cannotmovetopicdown = "<?php print_string('cannotmovetopicdown', 'block_course_menu'); ?> ";
-Config_Block_Course_Menu.otherInfo.txt.expandableTree      = "<?php print_string('expandable_tree', 'block_course_menu') ?>";
-
+//lang strings
+<?php 
+$txt = new stdClass();
+foreach (array('chaptering', 'subchaptering', 'numberofchapter', 'numberofsubchapter', 'change', 'defaultgrouping', 'chapters',
+ 'chapter', 'subchapter', 'subchapters', 'wrongnumber', 'wrongsubchapnumber', 'warningchapnochange', 'warningsubchapnochange',
+ 'activatecustomlinks', 'numberoflinks', 'change', 'customlink', 'name', 'url', 'window', 'samewindow', 'newwindow',
+ 'icon', 'linkswrongnumber', 'customlink', 'correcturlmsg', 'cannotmoveright', 'emptychapname', 'emptysubchapname',
+ 'warningsubchapenable', 'keeppagenavigation', 'allowresize', 'allowscroll', 'showdirectorylinks', 'showlocationbar', 'showmenubar',
+ 'showtoolbar', 'showstatusbar', 'defaultwidth', 'defaultheight', 'linknoname', 'linknourl', 'cannotmovetopicup',
+ 'cannotmovetopicdown') as $key) {
+    $txt->{$key} = get_string($key, 'block_course_menu');
+}
+?>
+Config_Block_Course_Menu.otherInfo.txt = <?php echo json_encode($txt) ?>;
 </script>

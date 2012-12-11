@@ -31,7 +31,7 @@ $block = block_instance('course_menu');
 $settings->add(new admin_setting_configtext('block_course_menu_trimlength', get_string('trimlength', 'block_course_menu'), '', block_course_menu::DEFAULT_TRIM_LENGTH, PARAM_INT, 11));
 $settings->add(new admin_setting_configtext('block_course_menu_sitetitle', get_string('namesitelevel', 'block_course_menu'), get_string('namesiteleveldescription', 'block_course_menu'), block_course_menu::DEFAULT_SITE_LEVEL_TITLE));
 $settings->add(new admin_setting_configcolourpicker('block_course_menu_docked_background', get_string('dockedbg', 'block_course_menu'), get_string('dockedbgdesc', 'block_course_menu'), block_course_menu::DEFAULT_DOCKED_BG));
-$settings->add(new admin_setting_confightml('global_config', '', '', '', $block));
+$settings->add(new block_cm_admin_setting_confightml('global_config', '', '', '', $block));
 
 
 ?>
