@@ -40,7 +40,7 @@ if (!isset ($this->config->elements)) {
             <table border="0">
                 <tbody>
                 <?php foreach ($this->config->elements as $index => $element) : ?>
-                    <tr id="element-<?php echo $element['id'] ?>">
+                    <tr id="element-<?php echo $element['id'] ?>"<?php if (strpos($element['id'], 'link') === 0) echo ' class="link-element"' ?>>
                         <td width="24" style="width: 24px">
                             <?php if (!empty($element['canHide'])) : ?>
                             <a href="javascript:void(0)" class="e-hide-element" rel="e-visible">
