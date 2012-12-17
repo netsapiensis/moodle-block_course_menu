@@ -74,6 +74,13 @@ class block_course_menu_edit_form extends block_edit_form
         $mform->setDefault('config_linksEnable', 0);
         $mform->addElement('html', $this->block->config_links());
         
+        $PAGE->requires->yui_module(array('moodle-block_course_menu-settings'), 'M.block_course_menu_settings.instance', 
+                array(
+                    $this->block->get_settings_util_js(), 
+                    $this->block->get_config(), 
+                    $this->block->get_section_names(),
+                    $this->block->is_site_level()), null, true);
+        
     }
 
 }

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * ---------------------------------------------------------------------------------------------------------------------
  *
@@ -21,10 +22,10 @@
  * ---------------------------------------------------------------------------------------------------------------------
  */
 
-class block_cm_admin_setting_confightml extends admin_setting {
+class block_cm_admin_setting_confightml extends admin_setting
+{
 
     public $html;
-
     private $_block;
 
     /**
@@ -36,7 +37,8 @@ class block_cm_admin_setting_confightml extends admin_setting {
      * @param string $defaultsetting
      * @param block_course_menu $block object
      */
-    public function __construct($name, $visiblename, $description, $defaultsetting, $block) {
+    public function __construct($name, $visiblename, $description, $defaultsetting, $block)
+    {
         $this->_block = $block;
         $this->html = $this->_block->output_global_config();
         $name = 'block_course_menu_' . $name;
@@ -48,86 +50,76 @@ class block_cm_admin_setting_confightml extends admin_setting {
      *
      * @return mixed returns config if successful else null
      */
-    public function get_setting() {
+    public function get_setting()
+    {
         return unserialize($this->config_read($this->name));
     }
 
-    public function write_setting($data) {
-        
-        if (!empty($_POST['s__' . $this->name])) {
+    public function write_setting($data)
+    {
+        $valid = optional_param('s__' . $this->name, '', PARAM_RAW_TRIMMED);
+        if (!empty($valid)) {
             $data = new stdClass();
-            $data->expandableTree = $_POST['expandableTree'];
-            $data->linksEnable = $_POST['linksEnable'];
-            $data->trimlength = $_POST['s__block_course_menu_trimlength'];
+            $data->expandableTree = optional_param('expandableTree', 0, PARAM_INT);
+            $data->linksEnable = optional_param('linksEnable', 0, PARAM_INT);
+            $data->trimlength = required_param('s__block_course_menu_trimlength', PARAM_INT);
+
             // elements
             $data->elements = array();
-            foreach ($_POST['ids'] as $k => $id) {
-                $url     = $_POST['urls'][$k];
-                $icon    = $_POST['icons'][$k];
-                $canHide = $_POST['canHides'][$k];
-                $visible = $_POST['visibles'][$k];
-                $name    = $this->_block->get_name($id);
-                $data->elements[] = $this->_block->create_element($id, $name, $url, $icon, $canHide, $visible);
+            $ids = optional_param_array('ids', array(), PARAM_RAW_TRIMMED);
+            $urls = optional_param_array('urls', array(), PARAM_RAW_TRIMMED);
+            $icons = optional_param_array('icons', array(), PARAM_RAW_TRIMMED);
+            $canHides = optional_param_array('canHides', array(), PARAM_INT);
+            $visibles = optional_param_array('visibles', array(), PARAM_INT);
+            
+            foreach ($ids as $k => $id) {
+                if (!$id) {
+                    continue; //last $id will be empty
+                }
+                if (strpos($id, 'link') !== false) {
+                    $index = str_replace('link', '', $id);
+                    $name = optional_param('cm_link_name' . $index, '', PARAM_RAW_TRIMMED);
+                    if (! $name) {
+                        $name = get_string('link', 'block_course_menu');
+                    }
+                } else {
+                    $name = $this->_block->get_name($id);
+                }
+                $data->elements[] = $this->_block->create_element($id, $name, $urls[$k], $icons[$k], $canHides[$k], $visibles[$k]);
             }
 
             //links
             $data->links = array();
-            if (isset($_POST['linkNames'])) { // means: if instance config. we don't have links in global config
-                foreach ($_POST['linkNames'] as $k => $name) {
-                    $link = array();
-                    $link['name']   = $name;
-                    $link['target'] = $_POST['linkTargets'][$k];
-                    $link['icon']   = $_POST['linkIcons'][$k];
-
-                    // url
-                    $link['url'] = $_POST['linkUrls'][$k];
-                    if (strpos($_POST['linkUrls'][$k], "://") === false) {
-                        // if no protocol then add "http://" - [CM-TD2]
-                        $link['url'] = "http://" . $link['url'];
-                    }
-
-                    // checkbox configs
-                    $idx = "keeppagenavigation$k";
-                    $link['keeppagenavigation'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    $idx = "allowresize$k";
-                    $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    $idx = "allowresize$k";
-                    $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    $idx = "allowresize$k";
-                    $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    $idx = "allowscroll$k";
-                    $link['allowscroll'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    $idx = "showdirectorylinks$k";
-                    $link['showdirectorylinks'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    $idx = "showlocationbar$k";
-                    $link['showlocationbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    $idx = "showmenubar$k";
-                    $link['showmenubar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    $idx = "showtoolbar$k";
-                    $link['showtoolbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    $idx = "showstatusbar$k";
-                    $link['showstatusbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                    // defaultwidth + defaultheight
-                    $link['defaultwidth'] = !empty($_POST['defaultwidth'][$k]) ? $_POST['defaultwidth'][$k] : 0;
-                    $link['defaultheight'] = !empty($_POST['defaultheight'][$k]) ? $_POST['defaultheight'][$k] : 0;
-
-                    $data->links[] = $link;
+            $linkCounter = optional_param_array('linkCounter', array(), PARAM_INT);
+            foreach ($linkCounter as $k => $notimportant) {
+                $url = optional_param('cm_link_url' . $k, '', PARAM_RAW_TRIMMED);
+//                if (empty($url)) { //no empty urls
+//                    continue;
+//                }
+                $link = array();
+                $link['name']   = optional_param('cm_link_name' . $k, '', PARAM_RAW_TRIMMED);
+                $link['target'] = optional_param('cm_link_target' . $k, '', PARAM_RAW_TRIMMED);
+                $link['icon']   = optional_param('cm_link_icon' . $k, '', PARAM_RAW_TRIMMED);
+                // url
+                $link['url'] = $url;
+                if (!preg_match('/http(s)?:\/\//i', $link['url'])) {
+                    $link['url'] = 'http://' . $link['url'];
                 }
-	    	}
 
+                // checkbox configs
+                foreach ($this->_block->get_link_checkboxes() as $field) {
+                    $idx = "cm_link_{$field}{$k}";
+                    $link[$field] = optional_param($idx, '', PARAM_RAW_TRIMMED) ? 1 : 0;
+                }
+                // defaultwidth + defaultheight
+                $link['defaultwidth'] = optional_param('cm_link_defaultwidth' . $k, 0, PARAM_INT);
+                $link['defaultheight'] = optional_param('cm_link_defaultheight' . $k, 0, PARAM_INT);
+
+                $data->links[] = $link;
+            }
             $data = serialize($data);
         }
-        
+
         return ($this->config_write($this->name, $data) ? '' : get_string('errorsetting', 'admin'));
     }
 
@@ -135,10 +127,12 @@ class block_cm_admin_setting_confightml extends admin_setting {
      * Return an XHTML string for the setting
      * @return string Returns an XHTML string
      */
-    public function output_html($data, $query = '') {
+    public function output_html($data, $query = '')
+    {
 
         $default = $this->get_defaultsetting();
         $current = $this->get_setting();
         return $this->html;
     }
+
 }

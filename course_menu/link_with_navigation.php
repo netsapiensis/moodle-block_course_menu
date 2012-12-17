@@ -50,6 +50,13 @@ if (empty($frameset)) { ?>
 	</html>
 
 <?php } elseif ($frameset == "top") { 
+    
+    $module = array(
+        'name' => 'block_course_menu',
+        'fullpath' => '/blocks/course_menu/js/link_with_navigation.js', 
+        'requires' => array('dom')
+    );
+    $PAGE->requires->js_init_call('M.block_course_menu_fix_links.init', array(), true, $module);
 
 	$course = $DB->get_record('course', array('id' => $courseid));
     $PAGE->set_course($course);
@@ -72,15 +79,12 @@ if (empty($frameset)) { ?>
     echo $OUTPUT->heading($course->fullname);
 	
 	echo $OUTPUT->header($navlinks);
-
     ?>
 <script type="text/javascript">
-//window.onload = function () {
-//    var aElems = document.getElementsByTagName("a");
-//    for (var i = 0; i < aElems.length; i++) {
-//        aElems[i].setAttribute("target", "_top");
-//        aElems[i].target = "_top";
-//    }
-//}
+    Y.on('domready', function() {
+        Y.all('.breadcrumb a').each( function() {
+            this.set('target', '_top');
+        } );
+    });
 </script>
 <?php } ?>

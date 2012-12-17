@@ -570,11 +570,6 @@ Y.extend(BRANCH, Y.Base, BRANCH.prototype, {
     }
 });
 
-/**
- * This namespace will contain all of the contents of the navigation blocks
- * global navigation and settings.
- * @namespace
- */
 M.block_course_menu = M.block_course_menu || {
     /** The number of expandable branches in existence */
     expandablebranchcount:1,

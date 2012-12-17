@@ -172,6 +172,11 @@ class block_course_menu_renderer extends plugin_renderer_base
 
     public function icon($src, $title, $props = array())
     {
+        global $OUTPUT;
+        if (strpos($src, 'pix_') === 0) {
+            $modname = str_replace('pix_', '', $src);
+            $src = $OUTPUT->pix_url('icon', $modname);
+        }
         $p = "";
         foreach ($props as $p => $v) {
             $p .= '"' . $p . '=' . $v . '" ';
@@ -196,9 +201,7 @@ class block_course_menu_renderer extends plugin_renderer_base
         $attr = array();
         if ($link['target']) { // open in new window
             $attr['onclick'] = <<<HTML
-window.open('{$url}', '{$link['name']}', 'resizable={$link['allowresize']},scrollbars={$link['allowscroll']},' + 
-'directories={$link['showdirectorylinks']},location={$link['showlocationbar']},menubar={$link['showmenubar']},' + 
-'toolbar={$link['showtoolbar']},status={$link['showstatusbar']},width={$link['defaultwidth']},height={$link['defaultheight']}'); return false;
+window.open('{$url}', '{$link['name']}', 'resizable={$link['allowresize']},scrollbars={$link['allowscroll']},directories={$link['showdirectorylinks']},location={$link['showlocationbar']},menubar={$link['showmenubar']},toolbar={$link['showtoolbar']},status={$link['showstatusbar']},width={$link['defaultwidth']},height={$link['defaultheight']}'); return false;
 HTML;
         }
         return $this->render_leaf($link['name'], $icon, $attr, $url, false, '', $hr);

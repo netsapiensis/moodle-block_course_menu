@@ -42,6 +42,8 @@ class block_course_menu extends block_base
         'calendar', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings'
     );
     private $contentgenerated = false;
+    
+    protected $section_names = array();
 
     function init()
     {
@@ -124,7 +126,6 @@ class block_course_menu extends block_base
         $sessionVar = $_SESSION['cm_tree'][$this->instance->id]['expanded_elements'];
 
         $this->check_default_config();
-
         //newly added elements
         //participatlist -> 2012-10-15
         if (!$this->element_exists('sitepages')) {
@@ -350,7 +351,7 @@ class block_course_menu extends block_base
 
         // calendar
         $elements[] = $this->create_element(
-                "calendar", $this->get_name("calendar"), "", $OUTPUT->pix_url('i/ical'), 1, 0
+                "calendar", $this->get_name("calendar"), "", "{$CFG->wwwroot}/blocks/course_menu/icons/cal.gif", 1, 0
         );
 
         //site pages
@@ -445,10 +446,7 @@ class block_course_menu extends block_base
 
         if (empty($this->config) || !is_object($this->config) || (!$this->_site_level && empty($this->config->chapters))) {
             //try global config
-            if ($this->_site_level) {
-
-                $this->init_default_config();
-            } elseif (!empty($CFG->block_course_menu_global_config)) {
+            if (!empty($CFG->block_course_menu_global_config)) {
                 $this->config = unserialize($CFG->block_course_menu_global_config);
                 // chaptering -----------------------------------------------------------------------
                 $this->config->chapEnable = 0;
@@ -725,22 +723,21 @@ class block_course_menu extends block_base
         $icons = array();
         $icons[0]['name'] = get_string('noicon', $this->blockname);
         $icons[0]['img'] = '';
+        $icons[0]['val'] = '';
         $icons[1]['name'] = get_string('linkfileorsite', $this->blockname);
         $icons[1]['img'] = "{$CFG->wwwroot}/blocks/course_menu/icons/link.gif";
+        $icons[1]['val'] = $icons[1]['img'];
         $icons[2]['name'] = get_string('displaydirectory', $this->blockname);
         $icons[2]['img'] = "{$CFG->wwwroot}/blocks/course_menu/icons/directory.gif";
+        $icons[2]['val'] = $icons[2]['img'];
 
         $allmods = $DB->get_records("modules");
         foreach ($allmods as $mod) {
             $icon = array();
             $icon['name'] = get_string("modulename", $mod->name);
-            $obj = $OUTPUT->pix_url('icon', $mod->name);
-            if (is_object($obj)) {
-                $icon['img'] = $obj->__toString();
-            } else {
-                $icon['img'] = '';
-            }
-
+            $icon['img'] = (string)$OUTPUT->pix_url('icon', $mod->name);
+            $icon['val'] = 'pix_' . $mod->name;
+            
             $icons[] = $icon;
         }
 
@@ -790,13 +787,13 @@ class block_course_menu extends block_base
         $this->check_default_config();
         $chapters = $this->config->chapters;
         $sections = $this->get_sections();
-        $sectionNames = array();
+        $this->section_names = array();
         foreach ($sections as $section) {
-            $sectionNames[] = $section['name'];
+            $this->section_names[] = $section['name'];
         }
         $this->check_redo_chaptering(count($sections));
+        $sectionNames = array();
         ob_start();
-        include ("{$CFG->dirroot}/blocks/course_menu/css/styles.php");
         include ("{$CFG->dirroot}/blocks/course_menu/config/chapters.php");
         $cc = ob_get_contents();
         ob_end_clean();
@@ -810,6 +807,17 @@ class block_course_menu extends block_base
         $this->course = $this->page->course;
         if (!$this->element_exists('sitepages')) {
             $this->init_default_config();
+        }
+        
+        if ($this->page->course->id == SITEID) {
+            $elements = array ();
+            $allowed = array ('calendar', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings');
+            foreach ($this->config->elements as $element) {
+                if (in_array($element['id'], $allowed) || substr($element['id'], 0, 4) == 'link') {
+                    $elements []= $element;
+                }
+            }
+            $this->config->elements = $elements;
         }
 
         ob_start();
@@ -842,13 +850,21 @@ class block_course_menu extends block_base
         if ($data->chapEnable == 0) {
             $data->subChapEnable = 0;
         }
+        
+        $chapterNames = optional_param_array('chapterNames', array(), PARAM_RAW_TRIMMED);
+        $childrenElementsNo = optional_param_array('chapterChildElementsNumber', array(), PARAM_INT);
+        $chapterCounts = optional_param_array('chapterCounts', array(), PARAM_INT);
+        $childElementTypes = optional_param_array('childElementTypes', array(), PARAM_ALPHANUMEXT);
+        $childElementCounts = optional_param_array('childElementCounts', array(), PARAM_INT);
+        $childElementNames = optional_param_array('childElementNames', array(), PARAM_RAW_TRIMMED);
+        
         if ($this->page->course->id != SITEID) { //save chapters
-            foreach ($_POST['chapterNames'] as $k => $name) {
+            foreach ($chapterNames as $k => $name) {
                 $chapter = array();
                 $chapter['name'] = $name;
                 $chapter['childElements'] = array();
 
-                for ($i = $lastIndex; $i < $lastIndex + $_POST['chapterChildElementsNumber'][$k]; $i++) {
+                for ($i = $lastIndex; $i < $lastIndex + $childrenElementsNo[$k]; $i++) {
                     $child = array();
                     if ($data->chapEnable == 0) { //only one subchapter
                         $child['type'] = "subchapter";
@@ -858,13 +874,13 @@ class block_course_menu extends block_base
                         $child['type'] = "subchapter";
                         $xx = $k + 1;
                         $child['name'] = get_string("subchapter", "block_course_menu") . " {$xx}-1";
-                        $child['count'] = $_POST['chapterCounts'][$k];
+                        $child['count'] = $chapterCounts[$k];
                     } else {
-                        $child['type'] = $_POST['childElementTypes'][$i];
+                        $child['type'] = $childElementTypes[$i];
                         if ($child['type'] == "subchapter") {
-                            $child['count'] = $_POST['childElementCounts'][$i];
+                            $child['count'] = $childElementCounts[$i];
                             $total += $child['count'];
-                            $child['name'] = $_POST['childElementNames'][$i];
+                            $child['name'] = $childElementNames[$i];
                         }
                     }
                     $chapter['childElements'][] = $child;
@@ -893,68 +909,55 @@ class block_course_menu extends block_base
 
         // elements
         $data->elements = array();
-        foreach ($_POST['ids'] as $k => $id) {
-            $url = $_POST['urls'][$k];
-            $icon = $_POST['icons'][$k];
-            $canHide = $_POST['canHides'][$k];
-            $visible = $_POST['visibles'][$k];
-            $name = $this->get_name($id);
-            $data->elements[] = $this->create_element($id, $name, $url, $icon, $canHide, $visible);
+        $ids = optional_param_array('ids', array(), PARAM_RAW_TRIMMED);
+        $urls = optional_param_array('urls', array(), PARAM_RAW_TRIMMED);
+        $icons = optional_param_array('icons', array(), PARAM_RAW_TRIMMED);
+        $canHides = optional_param_array('canHides', array(), PARAM_INT);
+        $visibles = optional_param_array('visibles', array(), PARAM_INT);
+        foreach ($ids as $k => $id) {
+            if (empty($id)) {
+                continue;
+            }
+            if (strpos($id, 'link') !== false) {
+                $index = str_replace('link', '', $id);
+                $name = optional_param('cm_link_name' . $index, '', PARAM_RAW_TRIMMED);
+                if (! $name) {
+                    $name = get_string('link', 'block_course_menu');
+                }
+            } else {
+                $name = $this->get_name($id);
+            }
+            $data->elements[] = $this->create_element($id, $name, $urls[$k], $icons[$k], $canHides[$k], $visibles[$k]);
         }
 
         //links
+        $linkCounter = optional_param_array('linkCounter', array(), PARAM_INT);
         $data->links = array();
-        if (isset($_POST['linkNames'])) { // means: if instance config. we don't have links in global config
-            foreach ($_POST['linkNames'] as $k => $name) {
-                $link = array();
-                $link['name'] = $name;
-                $link['target'] = $_POST['linkTargets'][$k];
-                $link['icon'] = $_POST['linkIcons'][$k];
-
-                // url
-                $link['url'] = $_POST['linkUrls'][$k];
-                if (strpos($_POST['linkUrls'][$k], "://") === false) {
-                    // if no protocol then add "http://" - [CM-TD2]
-                    $link['url'] = "http://" . $link['url'];
-                }
-
-                // checkbox configs
-                $idx = "keeppagenavigation$k";
-                $link['keeppagenavigation'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowresize$k";
-                $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowresize$k";
-                $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowresize$k";
-                $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowscroll$k";
-                $link['allowscroll'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showdirectorylinks$k";
-                $link['showdirectorylinks'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showlocationbar$k";
-                $link['showlocationbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showmenubar$k";
-                $link['showmenubar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showtoolbar$k";
-                $link['showtoolbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showstatusbar$k";
-                $link['showstatusbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                // defaultwidth + defaultheight
-                $link['defaultwidth'] = !empty($_POST['defaultwidth'][$k]) ? $_POST['defaultwidth'][$k] : 0;
-                $link['defaultheight'] = !empty($_POST['defaultheight'][$k]) ? $_POST['defaultheight'][$k] : 0;
-
-                $data->links[] = $link;
+        foreach ($linkCounter as $k => $notimportant) {
+            $url = optional_param('cm_link_url' . $k, '', PARAM_RAW_TRIMMED);
+//            if (empty($url)) { //no empty urls
+//                continue;
+//            }
+            $link = array();
+            $link['name']   = optional_param('cm_link_name' . $k, '', PARAM_RAW_TRIMMED);
+            $link['target'] = optional_param('cm_link_target' . $k, '', PARAM_RAW_TRIMMED);
+            $link['icon']   = optional_param('cm_link_icon' . $k, '', PARAM_RAW_TRIMMED);
+            // url
+            $link['url'] = $url;
+            if (!preg_match('/http(s)?:\/\//i', $link['url'])) {
+                $link['url'] = 'http://' . $link['url'];
             }
+
+            // checkbox configs
+            foreach ($this->get_link_checkboxes() as $field) {
+                $idx = "cm_link_{$field}{$k}";
+                $link[$field] = optional_param($idx, '', PARAM_RAW_TRIMMED) ? 1 : 0;
+            }
+            // defaultwidth + defaultheight
+            $link['defaultwidth'] = optional_param('cm_link_defaultwidth' . $k, 0, PARAM_INT);
+            $link['defaultheight'] = optional_param('cm_link_defaultheight' . $k, 0, PARAM_INT);
+            
+            $data->links[] = $link;
         }
         return parent::instance_config_save($data, $nolongerused);
     }
@@ -966,15 +969,13 @@ class block_course_menu extends block_base
 
     function output_global_config()
     {
-        global $CFG, $THEME, $OUTPUT;
-
+        global $CFG, $THEME, $OUTPUT, $PAGE;
         $icons = $this->get_link_icons();
         // if any config is missing then set eveything to default
         if (empty($CFG->block_course_menu_global_config)) {
             $this->init_default_config(false);
         } else {
             $this->config = @unserialize($CFG->block_course_menu_global_config);
-
             if (!$this->element_exists('sitepages')) {
                 $this->init_default_config(false);
             } else {
@@ -987,13 +988,21 @@ class block_course_menu extends block_base
 
         // elements: set names
         foreach ($this->config->elements as $k => $element) {
-            $this->config->elements[$k]['name'] = $this->get_name($element['id']);
+            if (empty($element['name'])) {
+                $this->config->elements[$k]['name'] = $this->get_name($element['id']);
+            }
         }
 
+        $PAGE->requires->yui_module(
+                array('moodle-block_course_menu-settings'), 
+                'M.block_course_menu_settings.global', 
+                array($this->get_settings_util_js(), $this->config), null, true);
+        
         ob_start();
         include ("{$CFG->dirroot}/blocks/course_menu/config/global.php");
         $cc = ob_get_contents();
         ob_end_clean();
+        
         return $cc;
     }
 
@@ -1048,7 +1057,51 @@ class block_course_menu extends block_base
 
         return false;
     }
+    
+    public function get_settings_util_js()
+    {
+        global $OUTPUT;
+        $util = array();
+        foreach (array('chaptering', 'subchaptering', 'numberofchapter', 'numberofsubchapter', 'change', 'defaultgrouping', 'chapters',
+            'chapter', 'subchapter', 'subchapters', 'wrongnumber', 'wrongsubchapnumber', 'warningchapnochange', 'warningsubchapnochange',
+            'activatecustomlinks', 'numberoflinks', 'change', 'customlink', 'name', 'url', 'window', 'samewindow', 'newwindow',
+            'icon', 'linkswrongnumber', 'customlink', 'correcturlmsg', 'cannotmoveright', 'emptychapname', 'emptysubchapname',
+            'warningsubchapenable', 'keeppagenavigation', 'allowresize', 'allowscroll', 'showdirectorylinks', 'showlocationbar', 'showmenubar',
+            'showtoolbar', 'showstatusbar', 'defaultwidth', 'defaultheight', 'linknoname', 'linknourl', 'cannotmovetopicup',
+            'cannotmovetopicdown', 'sections') as $key) {
+            $util['str'][$key] = get_string($key, 'block_course_menu');
+        }
+        
+        $util['img']['hide'] = (string)$OUTPUT->pix_url('i/hide');
+        $util['img']['show'] = (string)$OUTPUT->pix_url('i/show');
+        $util['img']['up'] = (string)$OUTPUT->pix_url('t/up');
+        $util['img']['right'] = (string)$OUTPUT->pix_url('t/right');
+        $util['img']['left'] = (string)$OUTPUT->pix_url('t/left');
+        $util['img']['down'] = (string)$OUTPUT->pix_url('t/down');
+        $util['img']['edit'] = (string)$OUTPUT->pix_url('i/edit');
+        
+        return $util;
+    }
+    
+    public function get_config()
+    {
+        return $this->config;
+    }
+    
+    public function get_section_names()
+    {
+        return $this->section_names;
+    }
+    
+    public function get_link_checkboxes() 
+    {
+        return array('keeppagenavigation', 'allowresize', 'allowscroll', 'showdirectorylinks', 
+            'showlocationbar', 'showmenubar', 'showtoolbar', 'showstatusbar');
+    }
+    
+    public function is_site_level()
+    {
+        return ($this->page->course->id == SITEID);
+    }
 
 }
-
-?>
