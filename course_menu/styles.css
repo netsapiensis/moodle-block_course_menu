@@ -34,8 +34,7 @@
 
 .link-template select {
     width: 234px;
-    height: 26px;
-    padding: 4px 2px;
+    padding: 0;
 }
 #elementsContainer table td {
     vertical-align: middle;

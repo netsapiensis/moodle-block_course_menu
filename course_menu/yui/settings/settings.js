@@ -65,6 +65,9 @@ YUI.add('moodle-block_course_menu-settings', function(Y) {
             Util.show_hide(Y.one('#linksEnableContainer a'), function( is_visible ) {
                 Y.one('#linksContainer').setStyle('display', is_visible ? 'block' : 'none');
                 self.linksEnable = is_visible;
+                if (Y.one('#id_config_linksEnable')) { //instance config
+                    Y.one('#id_config_linksEnable').set('value', is_visible ? '1' : '0');
+                }
                 Elements.refreshLinks(is_visible);
             });
             this.draw();
@@ -316,7 +319,10 @@ YUI.add('moodle-block_course_menu-settings', function(Y) {
                     var _link = parseInt(config.elements[index].id.replace('link', ''));
                     if (_link >= linkCount) {
                         config.elements.splice(index, 1);
-                        this.table.one('#element-link' + _link).remove();
+                        var tr = this.table.one('#element-link' + _link);
+                        if ( tr ) {
+                            tr.remove();
+                        }
                     } else {
                         index++;
                     }
@@ -324,10 +330,11 @@ YUI.add('moodle-block_course_menu-settings', function(Y) {
                     index++;
                 }
             }
+            this.refresh();
         },
         refreshLinks: function( is_visible ) {
             if (! is_visible) {
-                this.table.all('.link-element').remove();
+                this.slice(0);
             } else {
                 for(var i = 0; i < config.links.length; i++) {
                     this.createLink(i);
