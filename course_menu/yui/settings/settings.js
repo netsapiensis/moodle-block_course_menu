@@ -55,13 +55,16 @@ YUI.add('moodle-block_course_menu-settings', function(Y) {
         tpl: '',
         linksCount: null,
         container: null,
+        linksEnable: false,
         init: function() {
+            this.linksEnable = config.linksEnable ? true : false;
             this.tpl = Y.one('#link-template').get('innerHTML');
             this.linksCount = Y.one('#linksCount');
             this.container = Y.one('#linksTableContainer');
             var self = this;
             Util.show_hide(Y.one('#linksEnableContainer a'), function( is_visible ) {
                 Y.one('#linksContainer').setStyle('display', is_visible ? 'block' : 'none');
+                self.linksEnable = is_visible;
                 Elements.refreshLinks(is_visible);
             });
             this.draw();
@@ -208,7 +211,7 @@ YUI.add('moodle-block_course_menu-settings', function(Y) {
             }
         },
         validate: function() {
-            if (config.links.length) {
+            if (config.links.length && this.linksEnable) {
                 for (var i = 0; i < config.links.length; i++) {
                     var input = Y.one('#cm_link_url' + i);
                     if (! config.links[i].url) {
@@ -903,12 +906,18 @@ YUI.add('moodle-block_course_menu-settings', function(Y) {
             U.img = args[0].img;
             U.str = args[0].str;
             config = args[1];
-            Y.one('form#adminsettings').on('submit', function( e ) {
-                if (! Links.validate()) {
-                    e.preventDefault();
-                }
-                return false;
-            });
+            var _form = Y.one('form#adminsettings'); //general (global) settings
+            if (! _form ) {
+                _form = Y.one('form.mform'); // instance config
+            }
+            if (_form) {
+                _form.on('submit', function( e ) {
+                    if (! Links.validate()) {
+                        e.preventDefault();
+                    }
+                    return false;
+                });
+            }
         }
     };
 
