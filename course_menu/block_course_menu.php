@@ -46,7 +46,7 @@ class block_course_menu extends block_base
     function init()
     {
         $this->blockname = get_class($this);
-        $this->title = get_string('pluginname', $this->blockname);   
+        $this->title = get_string('pluginname', $this->blockname);
     }
 
     function instance_allow_multiple()
@@ -156,7 +156,7 @@ class block_course_menu extends block_base
                 }
             }
         }
-        
+
         $module = array('name' => 'block_course_menu', 'fullpath' => '/blocks/course_menu/course_menu.js', 'requires' => array('core_dock', 'io', 'node', 'dom', 'event-custom', 'json-parse'), 'strings' => array(array('viewallcourses', 'moodle')));
         $limit = 20;
 
@@ -214,10 +214,10 @@ class block_course_menu extends block_base
                                 //check capabilities
                                 // user/index.php expect course context, so get one if page has module context.
                                 $currentcontext = $this->page->context->get_course_context(false);
-                                if (! (empty($currentcontext) || 
+                                if (! (empty($currentcontext) ||
                                         ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', get_context_instance(CONTEXT_SYSTEM))) ||
                                         !has_capability('moodle/course:viewparticipants', $currentcontext))) {
-                                    
+
                                     $element['url'] = $CFG->wwwroot . '/user/index.php?contextid=' . $currentcontext->id;
                                     $child_node = new navigation_node(array(
                                         'text' => get_string('participantlist', $this->blockname),
@@ -584,22 +584,22 @@ class block_course_menu extends block_base
         if (!empty($this->instance) && $this->page->course->id != SITEID) {
 
             require_once($CFG->dirroot . "/course/lib.php");
-            
+
             $context = get_context_instance(CONTEXT_COURSE, $this->course->id);
             $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
 
             $genericName = get_string("sectionname", 'format_' . $this->course->format);
-            
+
             $modinfo = get_fast_modinfo($this->page->course);
             $mods = $modinfo->get_cms();
-            
+
             $allSections = $modinfo->get_section_info_all();
 
             $sections = array();
             if ($this->course->format != 'social' && $this->course->format != 'scorm') {
                 foreach ($allSections as $k => $section) {
 
-                    if ($k <= $this->course->numsections) { // get_all_sections() may return sections that are in the db but not displayed because the number of the sections for this course was lowered - bug [CM-B10]
+                    if ($k <= $allSections) {
                         if (!empty($section)) {
                             $newSec = array();
                             $newSec['visible'] = $section->visible;
@@ -614,7 +614,7 @@ class block_course_menu extends block_base
                                 $strsummary = ucwords($genericName) . " " . $k; // just a default name
                             }
 
-                            $strsummary = $this->trim($strsummary);                            
+                            $strsummary = $this->trim($strsummary);
                             $newSec['name'] = $strsummary;
                             $newSec['url'] = course_get_url($this->course, $k);
 
@@ -1034,4 +1034,3 @@ class block_course_menu extends block_base
 
 }
 
-?>
