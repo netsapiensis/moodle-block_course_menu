@@ -70,6 +70,7 @@ function xmldb_block_course_menu_upgrade($oldversion, $block)
             }
         }
     }
+    
     return true;
 }
 
