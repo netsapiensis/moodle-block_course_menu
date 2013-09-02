@@ -44,7 +44,7 @@ class block_course_menu extends block_base
     private $contentgenerated = false;
     
     protected $section_names = array();
-
+    
     function init()
     {
         $this->blockname = get_class($this);
@@ -261,7 +261,7 @@ class block_course_menu extends block_base
                                 $index = intval($matches[1]);
                                 if ($index && isset($this->config->links[$index])) { //this should always happen
                                     $lis .= $renderer->render_link($this->config->links[$index], $this->course->id, !$first);
-                                } else {
+                                } elseif (isset($this->config->links[$linkIndex]))  { //weird bug #0000166 
                                     $lis .= $renderer->render_link($this->config->links[$linkIndex], $this->course->id, !$first);
                                     $linkIndex++;
                                 }
@@ -914,6 +914,7 @@ class block_course_menu extends block_base
         $icons = optional_param_array('icons', array(), PARAM_RAW_TRIMMED);
         $canHides = optional_param_array('canHides', array(), PARAM_INT);
         $visibles = optional_param_array('visibles', array(), PARAM_INT);
+        
         foreach ($ids as $k => $id) {
             if (empty($id)) {
                 continue;
@@ -935,9 +936,9 @@ class block_course_menu extends block_base
         $data->links = array();
         foreach ($linkCounter as $k => $notimportant) {
             $url = optional_param('cm_link_url' . $k, '', PARAM_RAW_TRIMMED);
-//            if (empty($url)) { //no empty urls
-//                continue;
-//            }
+            if (empty($url)) { //no empty urls
+                continue;
+            }
             $link = array();
             $link['name']   = optional_param('cm_link_name' . $k, '', PARAM_RAW_TRIMMED);
             $link['target'] = optional_param('cm_link_target' . $k, '', PARAM_RAW_TRIMMED);
@@ -959,6 +960,7 @@ class block_course_menu extends block_base
             
             $data->links[] = $link;
         }
+        
         return parent::instance_config_save($data, $nolongerused);
     }
 
