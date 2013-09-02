@@ -1047,14 +1047,19 @@ class block_course_menu extends block_base
     function remove_deprecated()
     {
         //showallsections has been removed
-        foreach ($this->config->elements as $k => $element) {
+		$removed = 0;
+		foreach ($this->config->elements as $k => $element) {
             if ($element['id'] == 'showallsections' || $element['id'] == 'coursemainpage') {
-                array_slice($this->config->elements, $k, 1);
-                if (!empty($this->instance) && !empty($this->instance->id)) {
-                    $this->save_config_to_db();
-                }
-                return true;
+                array_splice($this->config->elements, $k - $removed, 1);
+                $removed++;
             }
+        }
+        
+        if ($removed > 0) {
+            if (!empty($this->instance) && !empty($this->instance->id)) {
+                $this->save_config_to_db();
+            }
+            return true;
         }
 
         return false;
