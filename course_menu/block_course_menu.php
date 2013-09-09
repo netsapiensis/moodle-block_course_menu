@@ -633,69 +633,42 @@ class block_course_menu extends block_base
                             $newSec['name'] = $strsummary;
                             $newSec['url'] = course_get_url($this->course, $k);
 
-                            // resources
-                            $newSec['resources'] = array();
-                            $sectionmods = explode(",", $section->sequence);
-                            foreach ($sectionmods as $modnumber) {
-                                if (empty($mods[$modnumber])) {
-                                    continue;
-                                }
-                                $mod = $mods[$modnumber];
-                                if ($mod->visible or $canviewhidden) {
-                                    $instancename = urldecode($modinfo->cms[$modnumber]->name);
-
-                                    if (!empty($CFG->filterall)) {
-                                        $instancename = filter_text($instancename, $this->course->id);
+                            if ($section->uservisible) {
+                                // resources
+                                $newSec['resources'] = array();
+                                $sectionmods = explode(",", $section->sequence);
+                                foreach ($sectionmods as $modnumber) {
+                                    if (empty($mods[$modnumber])) {
+                                        continue;
                                     }
+                                    $mod = $mods[$modnumber];
+                                    if ($mod->uservisible) {
+                                        $instancename = urldecode($mod->name);
 
-                                    // don't do anything for labels
-                                    if ($mod->modname != 'label') {
-                                        // Normal activity
-                                        if ($mod->visible or $canviewhidden) {
+                                        if (!empty($CFG->filterall)) {
+                                            $instancename = filter_text($instancename, $this->course->id);
+                                        }
+
+                                        // don't do anything for labels
+                                        if ($mod->has_view()) {
+                                            // Normal activity
                                             if (!strlen(trim($instancename))) {
                                                 $instancename = $mod->modfullname;
                                             }
+                                            $url = $mod->get_url();
+                                            $iconurl = $mod->get_icon_url();
 
-                                            $resource = array();
-                                            if ($mod->modname != 'resource') {
-                                                $resource['name'] = $instancename;
-                                                $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                if (is_object($icon)) {
-                                                    $resource['icon'] = $icon->__toString();
-                                                } else {
-                                                    $resource['icon'] = '';
-                                                }
-                                            } else {
-                                                require_once($CFG->dirroot . '/mod/resource/lib.php');
-                                                $info = resource_get_coursemodule_info($mod);
-                                                if (isset($info->icon)) {
-                                                    $resource['name'] = $info->name;
-                                                    $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                    $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    if (is_object($icon)) {
-                                                        $resource['icon'] = $icon->__toString();
-                                                    } else {
-                                                        $resource['icon'] = '';
-                                                    }
-                                                } else if (!isset($info->icon)) {
-                                                    $resource['name'] = $info->name;
-                                                    $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                    $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    if (is_object($icon)) {
-                                                        $resource['icon'] = $icon->__toString();
-                                                    } else {
-                                                        $resource['icon'] = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    }
-                                                }
-                                            }
-                                            if ($section->uservisible) {
-                                                $newSec['resources'][] = $resource;
-                                            }
+                                            $resource = array(
+                                                'name' => $instancename,
+                                                'url'=> $url ? $url->out() : '',
+                                                'icon' => $iconurl ? $iconurl->out() : '',
+                                            );
+                                            $newSec['resources'][] = $resource;
                                         }
                                     }
                                 }
                             }
+
                             $showsection = $section->uservisible ||
                                     ($section->visible && !$section->available && $section->showavailability);
                             //hide hidden sections from students if the course settings say that - bug #212
