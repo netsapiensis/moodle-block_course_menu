@@ -209,8 +209,9 @@ TREE.prototype = {
         // If this block can dock tell the dock to resize if required and check
         // the width on the dock panel in case it is presently in use.
         if (this.get('candock')) {
-            M.core_dock.resize();
-            var panel = M.core_dock.getPanel();
+            var _o = M.core_dock ? M.core_dock : M.core.dock.get();
+            _o.resize();
+            var panel = _o.getPanel();
             if (panel.visible) {
                 panel.correctWidth();
             }
@@ -582,22 +583,41 @@ M.block_course_menu = M.block_course_menu || {
         if (properties.courselimit) {
             this.courselimit = properties.courselimit;
         }
+        var _LEGACY = false;
         if (M.core_dock) {
             M.core_dock.init(Y);
+            _LEGACY = true;
         }
+
+        var _dock = M.core && M.core.dock ? M.core.dock.get() : M.core_dock;
         new TREE(properties);
         if (typeof properties.bg_color !== 'undefined') {
-            var _bg = properties.bg_color;
-            M.core_dock.on('dock:itemadded', function () {
-                var _items = this.items;
-                for (var i = 0; i < _items.length; i++) {
-                    if (typeof _items[i] === "object" && _items[i].blockclass === 'block_course_menu') {
-                        var _current = _items[i];
-                        var ttl = _current.nodes.docktitle;
-                        ttl.setStyle("background", "none").setStyle("backgroundColor", _bg);
+            var _bg = properties.bg_color,
+                _setBackground = function(items) {
+                    if (!items) {
+                        return;
+                    }
+                    for (var i in items) {
+                        if (_LEGACY) {
+                            if (items[i] && items[i].blockclass == 'block_course_menu') {
+                                items[i].nodes.docktitle.setStyle("background", "none").setStyle("backgroundColor", _bg);
+                            }
+                        } else {
+                            var current = items[i].get('dockTitleNode');
+                            if (items[i].get('blockinstanceid') == properties.instance) {
+                                current.setStyle("background", "none").setStyle("backgroundColor", _bg);
+                            }
+                        }
                     }
                 }
+            _dock.on('dock:itemadded', function () {
+                var _items = this.items ? this.items : (this.dockeditems ? this.dockeditems : []);
+                _setBackground(_items);
             });
+            var _items = _dock.items ? _dock.items : (_dock.dockeditems ? _dock.dockeditems : []);
+            if (_items) {
+                _setBackground(_items);
+            }
         }
     }
 };

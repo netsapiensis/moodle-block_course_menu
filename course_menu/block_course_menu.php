@@ -67,7 +67,6 @@ class block_course_menu extends block_base
     {
         global $CFG;
         user_preference_allow_ajax_update('docked_block_instance_' . $this->instance->id, PARAM_INT);
-        $this->page->requires->js_module('core_dock');
         $limit = 20;
         if (!empty($CFG->navcourselimit)) {
             $limit = $CFG->navcourselimit;
@@ -92,7 +91,7 @@ class block_course_menu extends block_base
         );
 
         $this->page->requires->string_for_js('viewallcourses', 'moodle');
-        $this->page->requires->yui_module(array('core_dock', 'moodle-block_course_menu-navigation'), 'M.block_course_menu.init_add_tree', array($arguments));
+        $this->page->requires->yui_module(array('moodle-core-dock', 'moodle-block_course_menu-navigation'), 'M.block_course_menu.init_add_tree', array($arguments));
     }
 
     function get_content()
