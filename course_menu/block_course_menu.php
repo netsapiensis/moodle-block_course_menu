@@ -247,7 +247,19 @@ class block_course_menu extends block_base
                         case 'reports':
                             if ($node_collection instanceof navigation_node_collection) {
                                 $_course = $node_collection->find($this->page->course->id, global_navigation::TYPE_COURSE)->children;
-                                $_node = $_course->get(1, global_navigation::TYPE_CONTAINER);
+                                $_node = $_course->get(1, global_navigation::TYPE_CONTAINER); // Moodle 2.3 - 2.6
+                                if (empty($_node)) { // Moodle >= 2.6
+                                    $settings = $this->page->settingsnav->children;
+                                    $admin_node = $settings->get('courseadmin');
+                                    if ($admin_node && $admin_node->has_children()) {
+                                        foreach ($admin_node->find_all_of_type(navigation_node::TYPE_CONTAINER) as $settings_node) {
+                                            if ($settings_node->text == get_string('reports')) {
+                                                $_node = $settings_node;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                                 if ($_node instanceof navigation_node) {
                                     $lis .= $renderer->render_navigation_node($_node, $expansionlimit, !$first);
                                 }
