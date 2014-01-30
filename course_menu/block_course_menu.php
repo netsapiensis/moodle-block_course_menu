@@ -194,6 +194,7 @@ class block_course_menu extends block_base
         $this->load_all_js($expandable);
 
         //render output
+        /** @var block_course_menu_renderer $renderer */
         $renderer = $this->page->get_renderer('block_course_menu');
         if ($this->_site_level) {
             $renderer->session = $_SESSION['cm_tree'][$this->instance->id]['expanded_elements'];
