@@ -40,7 +40,6 @@ class block_cm_admin_setting_confightml extends admin_setting
     public function __construct($name, $visiblename, $description, $defaultsetting, $block)
     {
         $this->_block = $block;
-        $this->html = $this->_block->output_global_config();
         $name = 'block_course_menu_' . $name;
         parent::__construct($name, $visiblename, $description, $defaultsetting);
     }
@@ -52,6 +51,10 @@ class block_cm_admin_setting_confightml extends admin_setting
      */
     public function get_setting()
     {
+        $_data = $this->config_read($this->name);
+        if (is_null($_data)) {
+            return null;
+        }
         return unserialize($this->config_read($this->name));
     }
 
@@ -129,9 +132,9 @@ class block_cm_admin_setting_confightml extends admin_setting
      */
     public function output_html($data, $query = '')
     {
-
         $default = $this->get_defaultsetting();
         $current = $this->get_setting();
+        $this->html = $this->_block->output_global_config();
         return $this->html;
     }
 
