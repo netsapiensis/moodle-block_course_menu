@@ -65,7 +65,10 @@ class block_cm_admin_setting_confightml extends admin_setting
             $data = new stdClass();
             $data->expandableTree = optional_param('expandableTree', 0, PARAM_INT);
             $data->linksEnable = optional_param('linksEnable', 0, PARAM_INT);
-            $data->trimlength = required_param('s__block_course_menu_trimlength', PARAM_INT);
+            $trimLength = optional_param('s__block_course_menu_trimlength', null, PARAM_INT);
+            if ($trimLength !== null) {
+                $data->trimlength = $trimLength;
+            }
 
             // elements
             $data->elements = array();

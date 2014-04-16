@@ -480,6 +480,10 @@ class block_course_menu extends block_base
             }
         }
         $this->remove_deprecated();
+        /* check instance config values that are missing and add them from global config */
+        if (empty($this->config->trimlength) && !empty($CFG->block_course_menu_trimlength)) {
+            $this->config->trimlength = $CFG->block_course_menu_trimlength;
+        }
     }
 
     function check_redo_chaptering($sectCount)
