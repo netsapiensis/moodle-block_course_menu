@@ -30,7 +30,7 @@ $name       = optional_param('name', '', PARAM_RAW);
 $url        = optional_param('url', '', PARAM_RAW);
 $frameset   = optional_param('frameset', 0, PARAM_RAW);
 $urls = new moodle_url('/blocks/course_menu/link_with_navigation.php', array('courseid' => $courseid, 'name' => $name, 'url' => $url, 'frameset' => $frameset));
-$context = get_context_instance(CONTEXT_COURSE, $courseid);
+$context = context_course::instance($courseid);
 $PAGE->set_url($urls);
 
 if (empty($frameset)) { ?>

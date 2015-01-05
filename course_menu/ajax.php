@@ -42,4 +42,3 @@ if ($action == "add") {
     }
 }
 exit();
-?>

@@ -42,8 +42,9 @@ class block_course_menu extends block_base
         'calendar', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings'
     );
     private $contentgenerated = false;
-    
     protected $section_names = array();
+
+    public $blockname;
 
     function init()
     {
@@ -68,7 +69,6 @@ class block_course_menu extends block_base
     {
         global $CFG;
         user_preference_allow_ajax_update('docked_block_instance_' . $this->instance->id, PARAM_INT);
-        $this->page->requires->js_module('core_dock');
         $limit = 20;
         if (!empty($CFG->navcourselimit)) {
             $limit = $CFG->navcourselimit;
@@ -91,9 +91,9 @@ class block_course_menu extends block_base
             'bg_color' => $bg_color,
             'expansions' => $expandable
         );
-        
+
         $this->page->requires->string_for_js('viewallcourses', 'moodle');
-        $this->page->requires->yui_module(array('core_dock', 'moodle-block_course_menu-navigation'), 'M.block_course_menu.init_add_tree', array($arguments));
+        $this->page->requires->yui_module(array('moodle-core-dock', 'moodle-block_course_menu-navigation'), 'M.block_course_menu.init_add_tree', array($arguments));
     }
 
     function get_content()
@@ -101,7 +101,7 @@ class block_course_menu extends block_base
         if ($this->contentgenerated) {
             return $this->content;
         }
-        
+
         global $CFG, $USER, $DB, $OUTPUT;
 
         if ($this->page->course->id == SITEID) {
@@ -192,10 +192,11 @@ class block_course_menu extends block_base
                 }
             }
         }
-        
+
         $this->load_all_js($expandable);
 
         //render output
+        /** @var block_course_menu_renderer $renderer */
         $renderer = $this->page->get_renderer('block_course_menu');
         if ($this->_site_level) {
             $renderer->session = $_SESSION['cm_tree'][$this->instance->id]['expanded_elements'];
@@ -231,7 +232,7 @@ class block_course_menu extends block_base
                                 // user/index.php expect course context, so get one if page has module context.
                                 $currentcontext = $this->page->context->get_course_context(false);
                                 if (!(empty($currentcontext) ||
-                                        ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', get_context_instance(CONTEXT_SYSTEM))) ||
+                                        ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', context_system::instance())) ||
                                         !has_capability('moodle/course:viewparticipants', $currentcontext))) {
 
                                     $element['url'] = $CFG->wwwroot . '/user/index.php?contextid=' . $currentcontext->id;
@@ -240,7 +241,7 @@ class block_course_menu extends block_base
                                         'shorttext' => get_string('participantlist', $this->blockname),
                                         'icon' => new pix_icon('i/users', get_string('participantlist', $this->blockname)),
                                         'action' => $element['url']
-                                            ));
+                                    ));
                                     $_node->add_node($child_node, 0);
                                 }
                                 $lis .= $renderer->render_navigation_node($_node, $expansionlimit, !$first);
@@ -249,7 +250,19 @@ class block_course_menu extends block_base
                         case 'reports':
                             if ($node_collection instanceof navigation_node_collection) {
                                 $_course = $node_collection->find($this->page->course->id, global_navigation::TYPE_COURSE)->children;
-                                $_node = $_course->get(1, global_navigation::TYPE_CONTAINER);
+                                $_node = $_course->get(1, global_navigation::TYPE_CONTAINER); // Moodle 2.3 - 2.6
+                                if (empty($_node)) { // Moodle >= 2.6
+                                    $settings = $this->page->settingsnav->children;
+                                    $admin_node = $settings->get('courseadmin');
+                                    if ($admin_node && $admin_node->has_children()) {
+                                        foreach ($admin_node->find_all_of_type(navigation_node::TYPE_CONTAINER) as $settings_node) {
+                                            if ($settings_node->text == get_string('reports')) {
+                                                $_node = $settings_node;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                                 if ($_node instanceof navigation_node) {
                                     $lis .= $renderer->render_navigation_node($_node, $expansionlimit, !$first);
                                 }
@@ -261,7 +274,7 @@ class block_course_menu extends block_base
                                 $index = intval($matches[1]);
                                 if ($index && isset($this->config->links[$index])) { //this should always happen
                                     $lis .= $renderer->render_link($this->config->links[$index], $this->course->id, !$first);
-                                } else {
+                                } elseif (isset($this->config->links[$linkIndex])) { //weird bug #0000166 
                                     $lis .= $renderer->render_link($this->config->links[$linkIndex], $this->course->id, !$first);
                                     $linkIndex++;
                                 }
@@ -469,6 +482,10 @@ class block_course_menu extends block_base
             }
         }
         $this->remove_deprecated();
+        /* check instance config values that are missing and add them from global config */
+        if (empty($this->config->trimlength) && !empty($CFG->block_course_menu_trimlength)) {
+            $this->config->trimlength = $CFG->block_course_menu_trimlength;
+        }
     }
 
     function check_redo_chaptering($sectCount)
@@ -525,7 +542,6 @@ class block_course_menu extends block_base
                 for ($i = $sectCount; $i < $chapCount; $i++) {
                     unset($this->config->chapters[$i]);
                 }
-                $chapCount = $sectCount;
             }
             $this->config->subChaptersCount = count($this->config->chapters);
 
@@ -598,8 +614,7 @@ class block_course_menu extends block_base
 
             require_once($CFG->dirroot . "/course/lib.php");
 
-            $context = get_context_instance(CONTEXT_COURSE, $this->course->id);
-            $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
+            $context = context_course::instance($this->course->id);
 
             $genericName = get_string("sectionname", 'format_' . $this->course->format);
 
@@ -614,7 +629,7 @@ class block_course_menu extends block_base
             if ($this->course->format != 'social' && $this->course->format != 'scorm') {
                 foreach ($allSections as $k => $section) {
 
-                    if (! isset($this->course->numsections) || $k <= $this->course->numsections) {
+                    if (!isset($this->course->numsections) || $k <= $this->course->numsections) {
                         if (!empty($section)) {
                             $newSec = array();
                             $newSec['visible'] = $section->visible;
@@ -633,73 +648,50 @@ class block_course_menu extends block_base
                             $newSec['name'] = $strsummary;
                             $newSec['url'] = course_get_url($this->course, $k);
 
-                            // resources
-                            $newSec['resources'] = array();
-                            $sectionmods = explode(",", $section->sequence);
-                            foreach ($sectionmods as $modnumber) {
-                                if (empty($mods[$modnumber])) {
-                                    continue;
-                                }
-                                $mod = $mods[$modnumber];
-                                if ($mod->visible or $canviewhidden) {
-                                    $instancename = urldecode($modinfo->cms[$modnumber]->name);
-
-                                    if (!empty($CFG->filterall)) {
-                                        $instancename = filter_text($instancename, $this->course->id);
+                            if ($section->uservisible) {
+                                // resources
+                                $newSec['resources'] = array();
+                                $sectionmods = explode(",", $section->sequence);
+                                foreach ($sectionmods as $modnumber) {
+                                    if (empty($mods[$modnumber])) {
+                                        continue;
                                     }
+                                    $mod = $mods[$modnumber];
+                                    if ($mod->uservisible) {
+                                        $instancename = urldecode($mod->name);
 
-                                    // don't do anything for labels
-                                    if ($mod->modname != 'label') {
-                                        // Normal activity
-                                        if ($mod->visible or $canviewhidden) {
+                                        if (!empty($CFG->filterall)) {
+                                            $instancename = filter_manager::instance()->filter_text($instancename, $context);
+                                        }
+
+                                        // don't do anything for labels
+                                        if ($mod->has_view()) {
+                                            // Normal activity
+
                                             if (!strlen(trim($instancename))) {
                                                 $instancename = $mod->modfullname;
                                             }
 
-                                            $resource = array();
-                                            if ($mod->modname != 'resource') {
-                                                $resource['name'] = $instancename;
-                                                $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                if (is_object($icon)) {
-                                                    $resource['icon'] = $icon->__toString();
-                                                } else {
-                                                    $resource['icon'] = '';
-                                                }
-                                            } else {
-                                                require_once($CFG->dirroot . '/mod/resource/lib.php');
-                                                $info = resource_get_coursemodule_info($mod);
-                                                if (isset($info->icon)) {
-                                                    $resource['name'] = $info->name;
-                                                    $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                    $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    if (is_object($icon)) {
-                                                        $resource['icon'] = $icon->__toString();
-                                                    } else {
-                                                        $resource['icon'] = '';
-                                                    }
-                                                } else if (!isset($info->icon)) {
-                                                    $resource['name'] = $info->name;
-                                                    $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                    $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    if (is_object($icon)) {
-                                                        $resource['icon'] = $icon->__toString();
-                                                    } else {
-                                                        $resource['icon'] = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    }
-                                                }
-                                            }
-                                            if ($section->uservisible) {
-                                                $newSec['resources'][] = $resource;
-                                            }
+                                            $url = isset($mod->url) ? /* >= Moodle 2.6 */ $mod->url : /* Moodle 2.3 - Moodle 2.6  */ $mod->get_url();
+
+                                            $iconurl = $mod->get_icon_url();
+
+                                            $resource = array(
+                                                'name' => $instancename,
+                                                'url' => $url ? $url->out() : '',
+                                                'icon' => $iconurl ? $iconurl->out() : '',
+                                            );
+
+                                            $newSec['resources'][] = $resource;
                                         }
                                     }
                                 }
                             }
+
                             $showsection = $section->uservisible ||
                                     ($section->visible && !$section->available && $section->showavailability);
                             //hide hidden sections from students if the course settings say that - bug #212
-                            $coursecontext = get_context_instance(CONTEXT_COURSE, $this->course->id);
+                            $coursecontext = context_course::instance($this->course->id);
                             if (!($section->visible == 0 && !has_capability('moodle/course:viewhiddensections', $coursecontext)) && $showsection) {
                                 $sections[] = $newSec;
                             }
@@ -735,9 +727,9 @@ class block_course_menu extends block_base
         foreach ($allmods as $mod) {
             $icon = array();
             $icon['name'] = get_string("modulename", $mod->name);
-            $icon['img'] = (string)$OUTPUT->pix_url('icon', $mod->name);
+            $icon['img'] = (string) $OUTPUT->pix_url('icon', $mod->name);
             $icon['val'] = 'pix_' . $mod->name;
-            
+
             $icons[] = $icon;
         }
 
@@ -755,22 +747,34 @@ class block_course_menu extends block_base
             $length = (int) $this->config->trimlength;
         }
 
-        $str_length = textlib::strlen($str);
+        $str_length = class_exists('core_text') ?
+            /* >= Moodle 2.6 */ core_text::strlen($str) :
+            /* Moodle 2.3 - Moodle 2.6 */ textlib::strlen($str);
 
         switch ($mode) {
             case self::TRIM_RIGHT :
                 if ($str_length > ($length + 3)) {
-                    return textlib::substr($str, 0, $length) . '...';
+                    return (class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ substr($str, 0, $length) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, 0, $length)) . '...';
                 }
+                break;
             case self::TRIM_LEFT :
                 if ($str_length > ($length + 3)) {
-                    return '...' . textlib::substr($str, $str_length - $length);
+                    return '...' . (class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ core_text::substr($str, $str_length - $length) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, $str_length - $length));
                 }
+                break;
             case self::TRIM_CENTER :
                 if ($str_length > ($length + 3)) {
                     $trimlength = ceil($length / 2);
-                    $start = textlib::substr($str, 0, $trimlength);
-                    $end = textlib::substr($str, $str_length - $trimlength);
+                    $start = class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ core_text::substr($str, 0, $trimlength) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, 0, $trimlength);
+                    $end = class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ core_text::substr($str, $str_length - $trimlength) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, $str_length - $trimlength);
                     $string = $start . '...' . $end;
                     return $string;
                 }
@@ -808,13 +812,13 @@ class block_course_menu extends block_base
         if (!$this->element_exists('sitepages')) {
             $this->init_default_config();
         }
-        
+
         if ($this->page->course->id == SITEID) {
-            $elements = array ();
-            $allowed = array ('calendar', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings');
+            $elements = array();
+            $allowed = array('calendar', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings');
             foreach ($this->config->elements as $element) {
                 if (in_array($element['id'], $allowed) || substr($element['id'], 0, 4) == 'link') {
-                    $elements []= $element;
+                    $elements [] = $element;
                 }
             }
             $this->config->elements = $elements;
@@ -850,14 +854,14 @@ class block_course_menu extends block_base
         if ($data->chapEnable == 0) {
             $data->subChapEnable = 0;
         }
-        
+
         $chapterNames = optional_param_array('chapterNames', array(), PARAM_RAW_TRIMMED);
         $childrenElementsNo = optional_param_array('chapterChildElementsNumber', array(), PARAM_INT);
         $chapterCounts = optional_param_array('chapterCounts', array(), PARAM_INT);
         $childElementTypes = optional_param_array('childElementTypes', array(), PARAM_ALPHANUMEXT);
         $childElementCounts = optional_param_array('childElementCounts', array(), PARAM_INT);
         $childElementNames = optional_param_array('childElementNames', array(), PARAM_RAW_TRIMMED);
-        
+
         if ($this->page->course->id != SITEID) { //save chapters
             foreach ($chapterNames as $k => $name) {
                 $chapter = array();
@@ -914,6 +918,7 @@ class block_course_menu extends block_base
         $icons = optional_param_array('icons', array(), PARAM_RAW_TRIMMED);
         $canHides = optional_param_array('canHides', array(), PARAM_INT);
         $visibles = optional_param_array('visibles', array(), PARAM_INT);
+
         foreach ($ids as $k => $id) {
             if (empty($id)) {
                 continue;
@@ -921,7 +926,7 @@ class block_course_menu extends block_base
             if (strpos($id, 'link') !== false) {
                 $index = str_replace('link', '', $id);
                 $name = optional_param('cm_link_name' . $index, '', PARAM_RAW_TRIMMED);
-                if (! $name) {
+                if (!$name) {
                     $name = get_string('link', 'block_course_menu');
                 }
             } else {
@@ -935,13 +940,13 @@ class block_course_menu extends block_base
         $data->links = array();
         foreach ($linkCounter as $k => $notimportant) {
             $url = optional_param('cm_link_url' . $k, '', PARAM_RAW_TRIMMED);
-//            if (empty($url)) { //no empty urls
-//                continue;
-//            }
+            if (empty($url)) { //no empty urls
+                continue;
+            }
             $link = array();
-            $link['name']   = optional_param('cm_link_name' . $k, '', PARAM_RAW_TRIMMED);
+            $link['name'] = optional_param('cm_link_name' . $k, '', PARAM_RAW_TRIMMED);
             $link['target'] = optional_param('cm_link_target' . $k, '', PARAM_RAW_TRIMMED);
-            $link['icon']   = optional_param('cm_link_icon' . $k, '', PARAM_RAW_TRIMMED);
+            $link['icon'] = optional_param('cm_link_icon' . $k, '', PARAM_RAW_TRIMMED);
             // url
             $link['url'] = $url;
             if (!preg_match('/http(s)?:\/\//i', $link['url'])) {
@@ -956,10 +961,11 @@ class block_course_menu extends block_base
             // defaultwidth + defaultheight
             $link['defaultwidth'] = optional_param('cm_link_defaultwidth' . $k, 0, PARAM_INT);
             $link['defaultheight'] = optional_param('cm_link_defaultheight' . $k, 0, PARAM_INT);
-            
+
             $data->links[] = $link;
         }
-        return parent::instance_config_save($data, $nolongerused);
+
+        parent::instance_config_save($data, $nolongerused);
     }
 
     public function has_config()
@@ -994,15 +1000,13 @@ class block_course_menu extends block_base
         }
 
         $PAGE->requires->yui_module(
-                array('moodle-block_course_menu-settings'), 
-                'M.block_course_menu_settings.global', 
-                array($this->get_settings_util_js(), $this->config), null, true);
-        
+                array('moodle-block_course_menu-settings'), 'M.block_course_menu_settings.global', array($this->get_settings_util_js(), $this->config), null, true);
+
         ob_start();
         include ("{$CFG->dirroot}/blocks/course_menu/config/global.php");
         $cc = ob_get_contents();
         ob_end_clean();
-        
+
         return $cc;
     }
 
@@ -1045,60 +1049,65 @@ class block_course_menu extends block_base
     function remove_deprecated()
     {
         //showallsections has been removed
+        $removed = 0;
         foreach ($this->config->elements as $k => $element) {
             if ($element['id'] == 'showallsections' || $element['id'] == 'coursemainpage') {
-                array_slice($this->config->elements, $k, 1);
-                if (!empty($this->instance) && !empty($this->instance->id)) {
-                    $this->save_config_to_db();
-                }
-                return true;
+                array_splice($this->config->elements, $k - $removed, 1);
+                $removed++;
             }
+        }
+
+        if ($removed > 0) {
+            if (!empty($this->instance) && !empty($this->instance->id)) {
+                $this->save_config_to_db();
+            }
+            return true;
         }
 
         return false;
     }
-    
+
     public function get_settings_util_js()
     {
         global $OUTPUT;
         $util = array();
         foreach (array('chaptering', 'subchaptering', 'numberofchapter', 'numberofsubchapter', 'change', 'defaultgrouping', 'chapters',
-            'chapter', 'subchapter', 'subchapters', 'wrongnumber', 'wrongsubchapnumber', 'warningchapnochange', 'warningsubchapnochange',
-            'activatecustomlinks', 'numberoflinks', 'change', 'customlink', 'name', 'url', 'window', 'samewindow', 'newwindow',
-            'icon', 'linkswrongnumber', 'customlink', 'correcturlmsg', 'cannotmoveright', 'emptychapname', 'emptysubchapname',
-            'warningsubchapenable', 'keeppagenavigation', 'allowresize', 'allowscroll', 'showdirectorylinks', 'showlocationbar', 'showmenubar',
-            'showtoolbar', 'showstatusbar', 'defaultwidth', 'defaultheight', 'linknoname', 'linknourl', 'cannotmovetopicup',
-            'cannotmovetopicdown', 'sections') as $key) {
+    'chapter', 'subchapter', 'subchapters', 'wrongnumber', 'wrongsubchapnumber', 'warningchapnochange', 'warningsubchapnochange',
+    'activatecustomlinks', 'numberoflinks', 'change', 'customlink', 'name', 'url', 'window', 'samewindow', 'newwindow',
+    'icon', 'linkswrongnumber', 'customlink', 'correcturlmsg', 'cannotmoveright', 'emptychapname', 'emptysubchapname',
+    'warningsubchapenable', 'keeppagenavigation', 'allowresize', 'allowscroll', 'showdirectorylinks', 'showlocationbar', 'showmenubar',
+    'showtoolbar', 'showstatusbar', 'defaultwidth', 'defaultheight', 'linknoname', 'linknourl', 'cannotmovetopicup',
+    'cannotmovetopicdown', 'sections') as $key) {
             $util['str'][$key] = get_string($key, 'block_course_menu');
         }
-        
-        $util['img']['hide'] = (string)$OUTPUT->pix_url('i/hide');
-        $util['img']['show'] = (string)$OUTPUT->pix_url('i/show');
-        $util['img']['up'] = (string)$OUTPUT->pix_url('t/up');
-        $util['img']['right'] = (string)$OUTPUT->pix_url('t/right');
-        $util['img']['left'] = (string)$OUTPUT->pix_url('t/left');
-        $util['img']['down'] = (string)$OUTPUT->pix_url('t/down');
-        $util['img']['edit'] = (string)$OUTPUT->pix_url('i/edit');
-        
+
+        $util['img']['hide'] = (string) $OUTPUT->pix_url('i/hide');
+        $util['img']['show'] = (string) $OUTPUT->pix_url('i/show');
+        $util['img']['up'] = (string) $OUTPUT->pix_url('t/up');
+        $util['img']['right'] = (string) $OUTPUT->pix_url('t/right');
+        $util['img']['left'] = (string) $OUTPUT->pix_url('t/left');
+        $util['img']['down'] = (string) $OUTPUT->pix_url('t/down');
+        $util['img']['edit'] = (string) $OUTPUT->pix_url('i/edit');
+
         return $util;
     }
-    
+
     public function get_config()
     {
         return $this->config;
     }
-    
+
     public function get_section_names()
     {
         return $this->section_names;
     }
-    
-    public function get_link_checkboxes() 
+
+    public function get_link_checkboxes()
     {
-        return array('keeppagenavigation', 'allowresize', 'allowscroll', 'showdirectorylinks', 
+        return array('keeppagenavigation', 'allowresize', 'allowscroll', 'showdirectorylinks',
             'showlocationbar', 'showmenubar', 'showtoolbar', 'showstatusbar');
     }
-    
+
     public function is_site_level()
     {
         return ($this->page->course->id == SITEID);

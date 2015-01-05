@@ -26,7 +26,6 @@ YUI.add('moodle-block_course_menu-settings', function(Y) {
     
     /**
      * Utils
-     * @type type
      */
     var U = {
         img: {},
