@@ -44,6 +44,8 @@ class block_course_menu extends block_base
     private $contentgenerated = false;
     protected $section_names = array();
 
+    public $blockname;
+
     function init()
     {
         $this->blockname = get_class($this);
@@ -230,7 +232,7 @@ class block_course_menu extends block_base
                                 // user/index.php expect course context, so get one if page has module context.
                                 $currentcontext = $this->page->context->get_course_context(false);
                                 if (!(empty($currentcontext) ||
-                                        ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', get_context_instance(CONTEXT_SYSTEM))) ||
+                                        ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', context_system::instance())) ||
                                         !has_capability('moodle/course:viewparticipants', $currentcontext))) {
 
                                     $element['url'] = $CFG->wwwroot . '/user/index.php?contextid=' . $currentcontext->id;
@@ -540,7 +542,6 @@ class block_course_menu extends block_base
                 for ($i = $sectCount; $i < $chapCount; $i++) {
                     unset($this->config->chapters[$i]);
                 }
-                $chapCount = $sectCount;
             }
             $this->config->subChaptersCount = count($this->config->chapters);
 
@@ -613,8 +614,7 @@ class block_course_menu extends block_base
 
             require_once($CFG->dirroot . "/course/lib.php");
 
-            $context = get_context_instance(CONTEXT_COURSE, $this->course->id);
-            $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
+            $context = context_course::instance($this->course->id);
 
             $genericName = get_string("sectionname", 'format_' . $this->course->format);
 
@@ -661,7 +661,7 @@ class block_course_menu extends block_base
                                         $instancename = urldecode($mod->name);
 
                                         if (!empty($CFG->filterall)) {
-                                            $instancename = filter_text($instancename, $this->course->id);
+                                            $instancename = filter_manager::instance()->filter_text($instancename, $context);
                                         }
 
                                         // don't do anything for labels
@@ -671,7 +671,9 @@ class block_course_menu extends block_base
                                             if (!strlen(trim($instancename))) {
                                                 $instancename = $mod->modfullname;
                                             }
-                                            $url = $mod->get_url();
+
+                                            $url = isset($mod->url) ? /* >= Moodle 2.6 */ $mod->url : /* Moodle 2.3 - Moodle 2.6  */ $mod->get_url();
+
                                             $iconurl = $mod->get_icon_url();
 
                                             $resource = array(
@@ -689,7 +691,7 @@ class block_course_menu extends block_base
                             $showsection = $section->uservisible ||
                                     ($section->visible && !$section->available && $section->showavailability);
                             //hide hidden sections from students if the course settings say that - bug #212
-                            $coursecontext = get_context_instance(CONTEXT_COURSE, $this->course->id);
+                            $coursecontext = context_course::instance($this->course->id);
                             if (!($section->visible == 0 && !has_capability('moodle/course:viewhiddensections', $coursecontext)) && $showsection) {
                                 $sections[] = $newSec;
                             }
@@ -745,22 +747,34 @@ class block_course_menu extends block_base
             $length = (int) $this->config->trimlength;
         }
 
-        $str_length = textlib::strlen($str);
+        $str_length = class_exists('core_text') ?
+            /* >= Moodle 2.6 */ core_text::strlen($str) :
+            /* Moodle 2.3 - Moodle 2.6 */ textlib::strlen($str);
 
         switch ($mode) {
             case self::TRIM_RIGHT :
                 if ($str_length > ($length + 3)) {
-                    return textlib::substr($str, 0, $length) . '...';
+                    return (class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ substr($str, 0, $length) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, 0, $length)) . '...';
                 }
+                break;
             case self::TRIM_LEFT :
                 if ($str_length > ($length + 3)) {
-                    return '...' . textlib::substr($str, $str_length - $length);
+                    return '...' . (class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ core_text::substr($str, $str_length - $length) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, $str_length - $length));
                 }
+                break;
             case self::TRIM_CENTER :
                 if ($str_length > ($length + 3)) {
                     $trimlength = ceil($length / 2);
-                    $start = textlib::substr($str, 0, $trimlength);
-                    $end = textlib::substr($str, $str_length - $trimlength);
+                    $start = class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ core_text::substr($str, 0, $trimlength) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, 0, $trimlength);
+                    $end = class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ core_text::substr($str, $str_length - $trimlength) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, $str_length - $trimlength);
                     $string = $start . '...' . $end;
                     return $string;
                 }
@@ -951,7 +965,7 @@ class block_course_menu extends block_base
             $data->links[] = $link;
         }
 
-        return parent::instance_config_save($data, $nolongerused);
+        parent::instance_config_save($data, $nolongerused);
     }
 
     public function has_config()
