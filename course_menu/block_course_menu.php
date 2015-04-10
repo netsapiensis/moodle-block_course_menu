@@ -219,6 +219,11 @@ class block_course_menu extends block_base
                         case 'tree': //build chapter / subchapter / topic / week structure
                             $lis .= $renderer->render_chapter_tree($this->instance->id, $this->config, $chapters, $sections, $displaysection, !$first);
                             break;
+                        case 'showallsections':
+                            $courseFormat = $this->course->format == 'topics' ? 'topic' : 'week';
+                            $element['url'] = "$CFG->wwwroot/course/view.php?id={$this->course->id}&{$courseFormat}=all";
+                            $lis .= $renderer->render_leaf($element['name'], $icon, array(), $element['url'], false, '', !$first);
+                            break;
                         case 'coursemainpage': //this has been removed in Course Menu for Moodle 2.3
                             break;
                         case 'calendar':
@@ -361,6 +366,8 @@ class block_course_menu extends block_base
         // elements -------------------------------------------------------------------------
         $elements = array();
         $elements[] = $this->create_element("tree", $this->get_name("tree"), '', '', 0);
+
+        $elements []= $this->create_element('showallsections', $this->get_name('showallsections'), '', $CFG->wwwroot . '/blocks/course_menu/icons/viewall.gif', 1, 0);
 
         // calendar
         $elements[] = $this->create_element(
@@ -813,6 +820,10 @@ class block_course_menu extends block_base
             $this->init_default_config();
         }
 
+        if (!$this->element_exists('showallsections')) {
+            array_splice($this->config->elements, 1, 0, array($this->create_element('showallsections', $this->get_name('showallsections'), '', $CFG->wwwroot . '/blocks/course_menu/icons/viewall.gif', 1, 0)));
+        }
+
         if ($this->page->course->id == SITEID) {
             $elements = array();
             $allowed = array('calendar', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings');
@@ -992,6 +1003,12 @@ class block_course_menu extends block_base
             }
         }
 
+        if (!$this->element_exists('showallsections')) {
+            array_splice($this->config->elements, 1, 0, array(
+                $this->create_element('showallsections', $this->get_name('showallsections'), '', $CFG->wwwroot . '/blocks/course_menu/icons/viewall.gif', 1, 0)
+            ));
+        }
+
         // elements: set names
         foreach ($this->config->elements as $k => $element) {
             if (empty($element['name'])) {
@@ -1051,7 +1068,7 @@ class block_course_menu extends block_base
         //showallsections has been removed
         $removed = 0;
         foreach ($this->config->elements as $k => $element) {
-            if ($element['id'] == 'showallsections' || $element['id'] == 'coursemainpage') {
+            if ($element['id'] == 'coursemainpage') {
                 array_splice($this->config->elements, $k - $removed, 1);
                 $removed++;
             }

@@ -80,6 +80,7 @@ $string['reports'] = 'Reports';
 $string['samewindow'] = 'Same window';
 $string['sections'] = 'Sections';
 $string['show'] = "Show";
+$string['showallsections'] = 'Show All Sections';
 $string['showdirectorylinks'] = 'Show the directory links';
 $string['showlocationbar'] = 'Show the location bar';
 $string['showmenubar'] = 'Show the menu bar';
