@@ -1,4 +1,5 @@
 <?php
+
 /*
  * ---------------------------------------------------------------------------------------------------------------------
  *
@@ -24,20 +25,19 @@
 function xmldb_block_course_menu_upgrade($oldversion, $block)
 {
     global $DB, $CFG;
-    
+
     if ($oldversion <= 2012082702) {
-        
+
         //remove gradebooks element - this might be present from prev versions
         if (!empty($CFG->block_course_menu_global_config)) { //first, remove it from the global config element
             $config = unserialize($CFG->block_course_menu_global_config);
             $save_it = block_course_menu_append_elements($config);
-            
+
             if ($save_it) {
                 set_config('block_course_menu_global_config', serialize($config));
             }
-            
         }
-        
+
         //foreach instance, remove gradebook and add new participants and reports links
         foreach ($DB->get_records('block_instances', array('blockname' => 'course_menu')) as $instance) {
             $config = unserialize(base64_decode($instance->configdata));
@@ -47,7 +47,7 @@ function xmldb_block_course_menu_upgrade($oldversion, $block)
                 $instance->configdata = base64_encode(serialize($config));
                 $DB->update_record('block_instances', $instance);
             }
-        }   
+        }
     } elseif ($oldversion <= 2012101500) {
         //remove gradebooks element - this might be present from prev versions
         if (!empty($CFG->block_course_menu_global_config)) { //first, remove it from the global config element
@@ -70,13 +70,14 @@ function xmldb_block_course_menu_upgrade($oldversion, $block)
             }
         }
     }
+    
     return true;
 }
 
 function block_course_menu_append_elements(& $config)
 {
     $save_it = false;
-    foreach ($config->elements as $index => $element) { 
+    foreach ($config->elements as $index => $element) {
         if (!empty($element['id']) && ($element['id'] == 'showgrades' || $element['id'] == 'participantlist'))  {
             array_splice($config->elements, $index, 1);
             $save_it = true;
@@ -88,38 +89,34 @@ function block_course_menu_append_elements(& $config)
     if (!isset($participants_found)) {
         //add the new links - participants and reports
         // participants
-        $config->elements []= block_course_menu_create_element(
-            'participants', 
-            get_string("participants", 'block_course_menu'), 
-            '', '', 1, 0, 1
+        $config->elements [] = block_course_menu_create_element(
+                'participants', get_string("participants", 'block_course_menu'), '', '', 1, 1, 1
         );
 
         // reports
-        $config->elements []= block_course_menu_create_element(
-            'reports', 
-            get_string("reports", 'block_course_menu'), 
-            '', '', 1, 0, 1
+        $config->elements [] = block_course_menu_create_element(
+                'reports', get_string("reports", 'block_course_menu'), '', '', 1, 1, 1
         );
         $save_it = true;
     }
-    
+
     return $save_it;
 }
 
 function block_course_menu_create_element($id, $name, $url, $icon = "", $canHide = 1, $visible = 1, $expandable = 0)
 {
     $elem = array();
-    $elem['id']      = $id;
-    $elem['name']    = $name;
-    $elem['url']     = $url;
+    $elem['id'] = $id;
+    $elem['name'] = $name;
+    $elem['url'] = $url;
     if (is_object($icon)) {
         $icon = $icon->__toString();
     }
-    $elem['icon']    = $icon;
+    $elem['icon'] = $icon;
     $elem['canHide'] = $canHide;
     $elem['visible'] = $visible;
 
     $elem['expandable'] = $expandable;
-    
+
     return $elem;
 }

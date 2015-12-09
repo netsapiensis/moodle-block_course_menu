@@ -21,26 +21,9 @@
  * ---------------------------------------------------------------------------------------------------------------------
  */
 
-$FIXED_VERSION = 2011051801;
+$plugin->version = 2015041000;
 
-//VERSION problem - until 2011-05-18 the version was: 201100518... (1 extra zero)
-global $DB, $CFG;
-
-$blk = $DB->get_record_select("block", "name = 'course_menu' AND version > 20110000000");
-
-if ($blk !== false && is_object($blk)) {
-    $_version = $blk->version;
-    if (strlen($_version) > 10) {
-        $blk->version = $FIXED_VERSION;
-        $DB->update_record("block", $blk);
-        header("Location: " . $CFG->wwwroot . "/admin/index.php");
-        exit();
-    }
-}
-
-$plugin->version = 2012102300;
-
-$plugin->component = 'block_course_menu';
-$plugin->release = '2.0.1';
-$plugin->requires = 2010112400; // Moodle 2.0
-$plugin->maturity = MATURITY_STABLE;
+$plugin->component  = 'block_course_menu';
+$plugin->release    = '2.3.0';
+$plugin->requires   = 2012062500; // Moodle 2.3
+$plugin->maturity   = MATURITY_STABLE;
