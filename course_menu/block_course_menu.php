@@ -341,7 +341,7 @@ class block_course_menu extends block_base
         $output .= '</div>';
 
         $this->contentgenerated = true;
-        $this->content->text = $output;
+        $this->content->text = '<style>.block_navigation .block_tree .tree_item.hasicon{white-space:normal;}</style>'.$output;
 
         return $this->content;
     }
