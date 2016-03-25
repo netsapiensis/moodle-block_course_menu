@@ -25,5 +25,5 @@ $plugin->version = 2015041000;
 
 $plugin->component  = 'block_course_menu';
 $plugin->release    = '2.3.0';
-$plugin->requires   = 2012062500; // Moodle 2.3
+$plugin->requires   = 2014041100; // Moodle 2.7
 $plugin->maturity   = MATURITY_STABLE;
