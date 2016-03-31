@@ -696,7 +696,7 @@ class block_course_menu extends block_base
                             }
 
                             $showsection = $section->uservisible ||
-                                    ($section->visible && !$section->available && $section->showavailability);
+                                    ($section->visible && !$section->available && !empty($section->availableinfo));
                             //hide hidden sections from students if the course settings say that - bug #212
                             $coursecontext = context_course::instance($this->course->id);
                             if (!($section->visible == 0 && !has_capability('moodle/course:viewhiddensections', $coursecontext)) && $showsection) {
