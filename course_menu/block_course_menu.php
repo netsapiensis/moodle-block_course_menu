@@ -247,7 +247,7 @@ class block_course_menu extends block_base
                                         'icon' => new pix_icon('i/users', get_string('participantlist', $this->blockname)),
                                         'action' => $element['url']
                                     ));
-                                    $_node->add_node($child_node, 0);
+                                    $_node->add_node($child_node);
                                 }
                                 $lis .= $renderer->render_navigation_node($_node, $expansionlimit, !$first);
                             }
@@ -606,7 +606,7 @@ class block_course_menu extends block_base
                 if (strstr($elementId, "link") !== false) {
                     return get_string("link", $this->blockname);
                 }
-                if (in_array($elementId, array('sitepages', 'mycourses', 'myprofile'))) {
+                if (in_array($elementId, array('sitepages', 'mycourses'/*, 'myprofile'*/))) {
                     return get_string($elementId);
                 }
                 return get_string($elementId, $this->blockname);
