@@ -321,7 +321,7 @@ class block_course_menu extends block_base
                                     $s = array();
                                     if (is_array($all) && count($all)) {
                                         foreach ($all as $item) {
-                                            if ($item->text == get_string($key)) {
+                                            if ($item->text == get_string($key, $this->blockname)) {
                                                 $s = $item;
                                                 break;
                                             }
