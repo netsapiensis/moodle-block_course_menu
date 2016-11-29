@@ -762,8 +762,8 @@ class block_course_menu extends block_base
             case self::TRIM_RIGHT :
                 if ($str_length > ($length + 3)) {
                     return (class_exists('core_text') ?
-                        /* >= Moodle 2.6 */ substr($str, 0, $length) :
-                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, 0, $length)) . '...';
+                        /* >= Moodle 2.6 */ mb_substr($str, 0, $length, 'utf-8') :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::mb_substr($str, 0, $length, 'utf-8')) . '...';
                 }
                 break;
             case self::TRIM_LEFT :
