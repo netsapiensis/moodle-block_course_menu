@@ -82,3 +82,7 @@ a.showHide.plus {
 #linksTableContainer input.link-text.cm-error {
     border: 1px solid red;
 }
+.block_navigation .block_tree [aria-expanded="false"], .block_navigation .block_tree [aria-expanded="true"] {
+    background-repeat: no-repeat;
+    background-position: left 10px;
+}
