@@ -40,13 +40,13 @@ M.block_course_menu = M.block_course_menu || {
      * @function
      */
     init:function(Y) {
-        
+
     	M.core_dock.init(Y);
 	    if (M.core_dock.genericblock) {
             // Give the tree class the dock block properties
 	        Y.augment(M.block_course_menu.classes.tree, M.core_dock.genericblock);
 			//adjust the title to fit the content ?
-			
+
 	    }
     },
     /**
@@ -83,7 +83,7 @@ M.block_course_menu.classes.tree = function(Y, id, properties) {
     this.skipsetposition = false;
     this.candock = false;
     this.docked = properties.docked
-    
+
     var _bg = properties.bg_color;
     M.core_dock.on('dock:itemadded', function () {
         var _items = this.items;
@@ -95,7 +95,7 @@ M.block_course_menu.classes.tree = function(Y, id, properties) {
             }
         }
     });
-    
+
     if (properties.expansions) {
         this.expansions = properties.expansions;
     }
@@ -105,21 +105,21 @@ M.block_course_menu.classes.tree = function(Y, id, properties) {
     if (properties.candock) {
         this.candock = true;
     }
-    
+
     var node = this.Y.one('#inst'+this.id);
-	
+
     // Can't find the block instance within the page
     if (node === null) {
         return;
     }
 
-    
+
     // Attach event to toggle expansion
     node.all('.tree_item.branch').on('click', this.toggleexpansion , this);
     var uri = location.href;
     var section = '';
     var sectionLinks = Y.all("a.section_link");
-    
+
     section = uri.split("#")[1];
     sectionLinks.each (function (v) {
         if(v.getAttribute("href") == "#" + section) {
@@ -170,7 +170,7 @@ M.block_course_menu.classes.tree = function(Y, id, properties) {
             // Failing over silently
         }
     }
-    
+
     if (node.hasClass('block_js_expansion')) {
         node.on('mouseover', function(e){this.toggleClass('mouseover');}, node);
         node.on('mouseout', function(e){this.toggleClass('mouseover');}, node);
@@ -179,7 +179,7 @@ M.block_course_menu.classes.tree = function(Y, id, properties) {
 
 /**
  * Loads a branch via AJAX
- * 
+ *
  * @param {event} e The event object
  * @param {object} branch A branch to load via ajax
  */
@@ -286,7 +286,7 @@ M.block_course_menu.classes.tree.prototype.add_branch = function(branchobj, targ
 M.block_course_menu.classes.tree.prototype.toggleexpansion = function(e) {
     // First check if they managed to click on the li iteslf, then find the closest
     // LI ancestor and use that
-	
+
     if (e.target.get('nodeName').toUpperCase() == 'A') {
         // A link has been clicked don't fire any more events just do the default.
         e.stopPropagation();
@@ -305,7 +305,7 @@ M.block_course_menu.classes.tree.prototype.toggleexpansion = function(e) {
     if (this.candock) {
         M.core_dock.resize();
     }
-    
+
     var act = "add";
     if (target.hasClass('collapsed')) {
     	act = "remove";
@@ -321,7 +321,7 @@ M.block_course_menu.classes.tree.prototype.toggleexpansion = function(e) {
         },
         context:this
     });
-    
+
 };
 
 /**

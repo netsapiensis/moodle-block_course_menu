@@ -132,7 +132,10 @@ YUI.add('moodle-block_course_menu-navigation', function (Y) {
             Y.delegate('actionkey', function (e) {
                 self.toggleExpansion(e);
             }, node.one('.block_tree'), '.tree_item.branch');
-
+            Y.delegate('click', function (e) {
+                self.toggleSectionExpansion(e);
+            }, node.one('.block_tree'), 'a.section_link');
+            // node.all('a.section_link').on('click', this.toggleSectionExpansion , this);
             // Gather the expandable branches ready for initialisation.
             var expansions = [];
             if (config.expansions) {
@@ -171,7 +174,7 @@ YUI.add('moodle-block_course_menu-navigation', function (Y) {
             // Makes sure we can get to the LI containing the branch.
             var target = e.target;
             if (!target.test('li')) {
-                target = target.ancestor('li')
+                target = target.ancestor('li');
             }
             if (!target) {
                 return;
@@ -195,6 +198,13 @@ YUI.add('moodle-block_course_menu-navigation', function (Y) {
                 }
             }
             var isExpanded = !target.hasClass('collapsed');
+            // console.log(target.get('children'));
+            // console.log(target.all('ul'));
+            // if(!isExpanded){
+            //     target.all('ul').setStyle('display', 'none');
+            // }else{
+            //     target.all('ul').setStyle('display', 'block');
+            // }
             target.set('aria-expanded', isExpanded);
 
             this.recordEvent(target, isExpanded);
@@ -219,6 +229,24 @@ YUI.add('moodle-block_course_menu-navigation', function (Y) {
                     panel.correctWidth();
                 }
             }
+        },
+        toggleSectionExpansion: function($section){
+            var $id = $section.target.get('id');
+            var $sectionId = $id.split("-");
+            $sectionId = $sectionId[$sectionId.length-1];
+            $toggleSectionId = '#toggle-'+$sectionId;
+            if(Y.one("#toggles-all-closed")) {
+                YUI().use('node-event-simulate', function (Y) {
+                    Y.one("#toggles-all-closed").simulate("click");
+                });
+            }
+            if(Y.one($toggleSectionId)) {
+                Y.one($toggleSectionId).all('.the_toggle').replaceClass("toggle_closed", "toggle_opened").set('aria-pressed', 'true');
+                $toggledSectionId = '#toggledsection-' + $sectionId;
+                Y.one($toggledSectionId).addClass('sectionopen');
+            }
+            setTimeout(function(){ window.scrollBy(0, -70); }, 50);
+
         },
         recordEvent: function ($li, isExpanded) {
             var target = $li.one('.item_name');

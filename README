@@ -17,3 +17,9 @@ There are also options to include in the block links to:
 
 This block is released under the GNU General Public Licence http://www.gnu.org/licenses/gpl-3.0.html
 
+
+Version Updates:
+
+2017080300 - When clicked in a section, all the opening sections were closed and clicked section was opened. Furthermore, the scroll position was also properly adjusted. The changes were made in navigation.js where a new method was added to the TREE object,
+
+And error handlers were added so that there are no console errors when the course format is not collapsible.

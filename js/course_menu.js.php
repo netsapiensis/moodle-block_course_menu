@@ -84,7 +84,7 @@ Config_Block_Course_Menu.otherInfo.imgEdit = "<?php echo $CFG->wwwroot.'/pix/i/e
 <?php else : ?>
     Config_Block_Course_Menu.otherInfo.courseFormat = "";
 <?php endif ?>
-    
+
 Config_Block_Course_Menu.otherInfo.txt = new Object();
 Config_Block_Course_Menu.otherInfo.txt.chaptering          = "<?php print_string('chaptering', 'block_course_menu'); ?>";
 //subchapters

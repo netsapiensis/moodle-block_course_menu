@@ -84,5 +84,25 @@ a.showHide.plus {
 }
 .block_navigation .block_tree [aria-expanded="false"], .block_navigation .block_tree [aria-expanded="true"] {
     background-repeat: no-repeat;
-    background-position: left 10px;
+    background-position: left 4px;
+}
+.block_navigation .block_tree .depth_2[aria-expanded="false"], .block_navigation .block_tree .depth_2[aria-expanded="true"] {
+background-position: left 10px;
+}
+
+
+.block_course_menu .collapsed ul{
+    display:none;
+}
+
+.block_course_menu ul{
+    display:block;
+}
+
+.block_navigation .block_tree .tree_item img {
+    padding-right: 6px;
+}
+
+.block_navigation .block_tree .tree_item.emptybranch {
+    padding-left: 21px;
 }
