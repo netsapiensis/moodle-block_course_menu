@@ -51,10 +51,25 @@ class block_course_menu_renderer extends plugin_renderer_base
             foreach ($chapter['childElements'] as $child) {
                 $topic = '';
                 $cl = "";
+                $child_limit = 2;
                 if ($child['type'] == 'subchapter') {
-                    for ($i = 0; $i < $child['count']; $i++) {
-                        $topic .= $this->render_topic($config, $sections[$sectionIndex], 0, $displaysection == $sections[$sectionIndex]['id']);
-                        $sectionIndex++;
+                    if($child['count'] > $child_limit) {
+                        $topic .= '<div class="dropdown">';
+                        $topic .= '<button onclick="myFunction()" class="dropbtn">Dropdown</button>';
+                        $topic .= '<div id="myDropdown" class="dropdown-content">';
+                        $topic .= '';
+                        for ($i = 0; $i < $child['count']; $i++) {
+                            $topic .= $this->render_topic_dropdown($config, $sections[$sectionIndex], 0, $displaysection == $sections[$sectionIndex]['id']);
+                            $sectionIndex++;
+                        }
+                        $topic .= "</div></div>";
+
+                    }else {
+
+                        for ($i = 0; $i < $child['count']; $i++) {
+                            $topic .= $this->render_topic($config, $sections[$sectionIndex], 0, $displaysection == $sections[$sectionIndex]['id']);
+                            $sectionIndex++;
+                        }
                     }
                     if ($config->subChapEnable) {
                         $title = html_writer::tag('span', $child['name'], array('class' => 'item_name'));
@@ -94,6 +109,19 @@ class block_course_menu_renderer extends plugin_renderer_base
             $contents = html_writer::tag('li', html_writer::empty_tag('hr')) . $contents;
         }
         return $contents;
+    }
+
+    public function render_topic_dropdown($config, $section, $depth = 0, $current = false)
+    {
+        if ($depth == 0) {
+            $depth = $this->topic_depth;
+        }
+
+        global $OUTPUT;
+        $html = '';
+#        $html .= '<option value="'.$section['url'].'">'.'<a href="http://www.spiegel.de">'.$section['trimmed_name'].'xx</a>'.'</option>';
+        $html .= '<a href="'.$section['url'].'">'.$section['trimmed_name'].'</a>';
+        return $html;
     }
 
     public function render_topic($config, $section, $depth = 0, $current = false)
