@@ -53,6 +53,10 @@ class block_course_menu_edit_form extends block_edit_form
         $mform->setDefault('config_trimlength', block_course_menu::DEFAULT_TRIM_LENGTH);
         $mform->setType('config_trimlength', PARAM_INT);
 
+        $mform->addElement('text', 'config_dropdowntrigger', get_string('dropdowntrigger', $this->block->blockname));
+        $mform->setDefault('config_dropdowntrigger', block_course_menu::DEFAULT_DROP_DOWN_TRIGGER);
+        $mform->setType('config_dropdowntrigger', PARAM_INT);
+
         $yesnooptions = array(1 => get_string('yes'), 0 => get_string('no'));
         $mform->addElement('select', 'config_expandableTree', get_string('expandable_tree', $this->block->blockname), $yesnooptions);
         $mform->setDefault('config_expandableTree', block_course_menu::EXPANDABLE_TREE);

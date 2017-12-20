@@ -43,6 +43,8 @@ $string['defaultwidth'] = 'Default window width (in pixels)';
 $string['displaydirectory'] = 'Display directory';
 $string['dockedbg'] = "Bg. color in docked mode";
 $string['dockedbgdesc'] = "Background color for the block title when docked";
+$string['dropdownbutton'] = "Please select...";
+$string['dropdowntrigger'] = "Show drop down if # of items >= ";
 $string['elements'] = "Elements";
 $string['emptychapname'] = 'Chapter name cannot be empty!';
 $string['emptysubchapname'] = 'Sub-chapter name cannot be empty!';

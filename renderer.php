@@ -31,6 +31,15 @@ class block_course_menu_renderer extends plugin_renderer_base
     public $session;
     private $displaysection = 1000;
 
+    /**
+     * @param $instance
+     * @param $config
+     * @param $chapters
+     * @param $sections
+     * @param $displaysection
+     * @param bool $hr
+     */
+
     public function render_chapter_tree($instance, $config, $chapters, $sections, $displaysection, $hr = false)
     {
         $this->displaysection = $displaysection;
@@ -51,11 +60,18 @@ class block_course_menu_renderer extends plugin_renderer_base
             foreach ($chapter['childElements'] as $child) {
                 $topic = '';
                 $cl = "";
-                $child_limit = 2;
+#                $child_limit = 2;
+                if(! empty($config->dropdowntrigger)) {
+                    $child_limit = $config->dropdowntrigger;
+                } else {
+                    $child_limit = 5;
+                }
+
                 if ($child['type'] == 'subchapter') {
+
                     if($child['count'] > $child_limit) {
                         $topic .= '<div class="dropdown">';
-                        $topic .= '<button onclick="myFunction()" class="dropbtn">Dropdown</button>';
+                        $topic .= '<button onclick="my_function()" class="dropbtn">'.get_string('dropdownbutton', 'block_course_menu').'</button>';
                         $topic .= '<div id="myDropdown" class="dropdown-content">';
                         $topic .= '';
                         for ($i = 0; $i < $child['count']; $i++) {
@@ -119,7 +135,6 @@ class block_course_menu_renderer extends plugin_renderer_base
 
         global $OUTPUT;
         $html = '';
-#        $html .= '<option value="'.$section['url'].'">'.'<a href="http://www.spiegel.de">'.$section['trimmed_name'].'xx</a>'.'</option>';
         $html .= '<a href="'.$section['url'].'">'.$section['trimmed_name'].'</a>';
         return $html;
     }

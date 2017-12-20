@@ -29,6 +29,7 @@ if ($ADMIN->fulltree) {
 
     $block = block_instance('course_menu');
 
+    $settings->add(new admin_setting_configtext('block_course_menu_dropdowntrigger', get_string('dropdowntrigger', 'block_course_menu'), '', block_course_menu::DEFAULT_DROP_DOWN_TRIGGER, PARAM_INT));
     $settings->add(new admin_setting_configtext('block_course_menu_trimlength', get_string('trimlength', 'block_course_menu'), '', block_course_menu::DEFAULT_TRIM_LENGTH, PARAM_INT, 11));
     $settings->add(new admin_setting_configtext('block_course_menu_sitetitle', get_string('namesitelevel', 'block_course_menu'), get_string('namesiteleveldescription', 'block_course_menu'), block_course_menu::DEFAULT_SITE_LEVEL_TITLE));
     $settings->add(new admin_setting_configcolourpicker('block_course_menu_docked_background', get_string('dockedbg', 'block_course_menu'), get_string('dockedbgdesc', 'block_course_menu'), block_course_menu::DEFAULT_DOCKED_BG));

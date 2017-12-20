@@ -27,10 +27,13 @@ class block_course_menu extends block_base
     /** @var int Trim characters from the right */
 
     const TRIM_RIGHT = 1;
+
     /** @var int Trim characters from the left */
     const TRIM_LEFT = 2;
+
     /** @var int Trim characters from the center */
     const TRIM_CENTER = 3;
+    const DEFAULT_DROP_DOWN_TRIGGER = 10;
     const DEFAULT_TRIM_LENGTH = 20;
     const DEFAULT_SITE_LEVEL_TITLE = 'Menu';
     const DEFAULT_DOCKED_BG = '#00AEEF';
@@ -92,8 +95,10 @@ class block_course_menu extends block_base
             'expansions' => $expandable
         );
 
+        $this->page->requires->js_call_amd('block_course_menu/dropdown', 'init');
         $this->page->requires->string_for_js('viewallcourses', 'moodle');
         $this->page->requires->yui_module(array('moodle-core-dock', 'moodle-block_course_menu-navigation'), 'M.block_course_menu.init_add_tree', array($arguments));
+
     }
 
     function get_content()
