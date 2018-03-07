@@ -59,8 +59,6 @@ class block_course_menu_renderer extends plugin_renderer_base
             $subchapter = '';
             foreach ($chapter['childElements'] as $child) {
                 $topic = '';
-                $cl = "";
-#                $child_limit = 2;
                 if(! empty($config->dropdowntrigger)) {
                     $child_limit = $config->dropdowntrigger;
                 } else {
@@ -79,9 +77,7 @@ class block_course_menu_renderer extends plugin_renderer_base
                             $sectionIndex++;
                         }
                         $topic .= "</div></div>";
-
                     }else {
-
                         for ($i = 0; $i < $child['count']; $i++) {
                             $topic .= $this->render_topic($config, $sections[$sectionIndex], 0, $displaysection == $sections[$sectionIndex]['id']);
                             $sectionIndex++;
@@ -129,7 +125,10 @@ class block_course_menu_renderer extends plugin_renderer_base
 
     public function render_dropdown_topic($config, $section, $id, $depth = 0, $current = false)
     {
-        return '<a class="cm_dropdown_option" id="'.$id.'" href="'.$section['url'].'">'.$section['trimmed_name'].'</a>';
+        $min_width = 140; // minimum width of drop down options
+        $width = $config->trimlength * 9; // trying to calculate the width based on the length of the trimmed text
+        if ($width < $min_width) $width = $min_width; // if the width is below the minimum make it the minimum.
+        return '<a class="cm_dropdown_option" id="'.$id.'" href="'.$section['url'].'" style="width:'.$width.'px;">'.$section['trimmed_name'].'</a>';
     }
 
     public function render_topic($config, $section, $depth = 0, $current = false)
