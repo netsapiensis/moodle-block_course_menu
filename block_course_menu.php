@@ -342,6 +342,8 @@ class block_course_menu extends block_base
                 }
             }
         }
+        $lis .= '<p></p><span class="close_all tree_item leaf">'.get_string('closeall', $this->blockname).'</span><br>';
+
         $output .= html_writer::tag('ul', $lis, array('class' => 'block_tree list'));
         $output .= '</div>';
 

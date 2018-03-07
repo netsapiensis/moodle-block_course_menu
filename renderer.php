@@ -64,18 +64,18 @@ class block_course_menu_renderer extends plugin_renderer_base
                 if(! empty($config->dropdowntrigger)) {
                     $child_limit = $config->dropdowntrigger;
                 } else {
-                    $child_limit = 5;
+                    $child_limit = 10;
                 }
 
                 if ($child['type'] == 'subchapter') {
 
                     if($child['count'] > $child_limit) {
                         $topic .= '<div class="dropdown">';
-                        $topic .= '<button onclick="my_function()" class="dropbtn">'.get_string('dropdownbutton', 'block_course_menu').'</button>';
+                        $topic .= '<button class="dropbtn">'.get_string('dropdownbutton', 'block_course_menu').'</button>';
                         $topic .= '<div id="myDropdown" class="dropdown-content">';
                         $topic .= '';
                         for ($i = 0; $i < $child['count']; $i++) {
-                            $topic .= $this->render_topic_dropdown($config, $sections[$sectionIndex], 0, $displaysection == $sections[$sectionIndex]['id']);
+                            $topic .= $this->render_dropdown_topic($config, $sections[$sectionIndex], $i+1, 0, $displaysection == $sections[$sectionIndex]['id']);
                             $sectionIndex++;
                         }
                         $topic .= "</div></div>";
@@ -127,16 +127,9 @@ class block_course_menu_renderer extends plugin_renderer_base
         return $contents;
     }
 
-    public function render_topic_dropdown($config, $section, $depth = 0, $current = false)
+    public function render_dropdown_topic($config, $section, $id, $depth = 0, $current = false)
     {
-        if ($depth == 0) {
-            $depth = $this->topic_depth;
-        }
-
-        global $OUTPUT;
-        $html = '';
-        $html .= '<a href="'.$section['url'].'">'.$section['trimmed_name'].'</a>';
-        return $html;
+        return '<a class="cm_dropdown_option" id="'.$id.'" href="'.$section['url'].'">'.$section['trimmed_name'].'</a>';
     }
 
     public function render_topic($config, $section, $depth = 0, $current = false)

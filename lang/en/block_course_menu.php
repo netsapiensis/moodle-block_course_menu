@@ -32,6 +32,7 @@ $string['change'] = 'Change';
 $string['chapter'] = 'Chapter';
 $string['chaptering'] = 'Activate Chapter Grouping';
 $string['chapters'] = 'Chapters';
+$string['closeall'] = 'Close all Elements';
 $string['correcturlmsg'] = '*The URL must be entered as an absolute url, containing the protocol, too. (eg correct urls: http://www.moodle.org, ftp://ftp.moodle.org; eg wrong urls: www.moodle.org, moodle.org)';
 $string['courseadministration'] = "Course administration";
 $string['coursemainpage'] = 'Course main page';
