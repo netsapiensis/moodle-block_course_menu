@@ -31,9 +31,9 @@ define(['jquery'], function($) {
                 }
             });
 
-            // if the page has no toggle elements hide the close_all button because it's useless
-            if(! $(document).find('.the_toggle').length > 0){
-                $('.close_all').hide();
+            // if the page has toggle elements show the close_all button
+            if($(document).find('.the_toggle').length > 0){
+                $('.close_all').show();
             }
 
             // when the close_all button is clicked close all open elements on the page

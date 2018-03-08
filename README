@@ -24,4 +24,4 @@ Version Updates:
 
 And error handlers were added so that there are no console errors when the course format is not collapsible.
 
-2018030700 - Now showing a drop down menu when the limit (default:10, can be changed in the settings) is reached rather than a fixed list. Added a 'Close all Elements' button which is only active if there are toggle elements present
+2018030800 - Now showing a drop down menu when the limit (default:10, can be changed in the settings) is reached rather than a fixed list. Added a 'Close all Elements' link which is only shown if there are toggle elements present
