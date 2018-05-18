@@ -1,0 +1,141 @@
+/*
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * This file is part of the Course Menu block for Moodle
+ *
+ * The Course Menu block for Moodle software package is Copyright � 2008 onwards NetSapiensis AB and is provided under
+ * the terms of the GNU GENERAL PUBLIC LICENSE Version 3 (GPL). This program is free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version. This program is distributed in the hope that
+ * it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details. You should have received a copy of the GNU General Public
+ * License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------------------------------------------------------
+ */
+
+.active_tree_node {
+    font-weight: bold !important;
+}
+
+.block_navigation .block_tree p.tree_item {
+    padding-top: 1px;
+}
+
+.link-template .clearfix {
+    height: 2px;
+}
+
+.link-template select {
+    width: 234px;
+    padding: 0;
+}
+#elementsContainer table td {
+    vertical-align: middle;
+    padding: 4px 2px;
+    font-size: 110%;
+}
+#elementsContainer table td img {
+    vertical-align: middle;
+}
+#elementsContainer table td.element-move-up {
+    padding-left: 10px;
+    padding-right: 0;
+}
+.clear {
+    clear: both;
+}
+.cm-table-structure td, .cm-table-structure td img {
+    vertical-align: middle;
+}
+#chaptersTableContainer table tr td {
+    padding: 2px 6px;
+    border: 1px solid #000;
+}
+a.enableDisable {
+    text-decoration: none !important;
+}
+a.showHide {
+    display: block;
+    padding-left: 20px;
+}
+a.showHide.minus {
+    background: url([[pix:t/expanded]]) right center no-repeat;
+    padding-left: 0;
+    padding-right: 20px;
+}
+
+a.showHide.plus {
+    background: url([[pix:t/collapsed]]) left center no-repeat;
+}
+
+.showHideCont {
+    float: right;
+    margin-right: 50px;
+}
+#linksTableContainer input.link-text.cm-error {
+    border: 1px solid red;
+}
+.block_navigation .block_tree [aria-expanded="false"], .block_navigation .block_tree [aria-expanded="true"] {
+    background-repeat: no-repeat;
+    background-position: left 4px;
+}
+.block_navigation .block_tree .depth_2[aria-expanded="false"], .block_navigation .block_tree .depth_2[aria-expanded="true"] {
+background-position: left 10px;
+}
+
+
+.block_course_menu .collapsed ul{
+    display:none;
+}
+
+.block_course_menu ul{
+    display:block;
+}
+
+.block_navigation .block_tree .tree_item img {
+    padding-right: 6px;
+}
+
+.block_navigation .block_tree .tree_item.emptybranch {
+    padding-left: 21px;
+}
+
+
+/* ------------------------------------------------------------- */
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 2px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+span.close_all {
+    display: none;
+}
