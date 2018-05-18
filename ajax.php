@@ -30,7 +30,8 @@ $name = md5(urldecode($name));
 $instance_id = required_param('instance', PARAM_INT);
 
 if ($action == "add") {
-    if (!in_array($name, $_SESSION['cm_tree'][$instance_id]['expanded_elements'])) {
+//    if (!in_array($name, $_SESSION['cm_tree'][$instance_id]['expanded_elements'])) {
+    if (!is_array($_SESSION['cm_tree'][$instance_id]['expanded_elements']) || !in_array($name, $_SESSION['cm_tree'][$instance_id]['expanded_elements'])) {
         $_SESSION['cm_tree'][$instance_id]['expanded_elements'][] = $name;
     }
 } elseif ($action == "remove") {

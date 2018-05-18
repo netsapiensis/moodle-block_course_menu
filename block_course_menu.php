@@ -151,8 +151,10 @@ class block_course_menu extends block_base
         foreach ($sections as $k => $section) {
             $sections[$k]['trimmed_name'] = $this->trim($section['name']);
             $sections[$k]['expanded'] = in_array(md5($sections[$k]['trimmed_name']), $sessionVar);
-            foreach ($section['resources'] as $l => $resource) {
-                $sections[$k]['resources'][$l]['trimmed_name'] = $this->trim($resource['name']);
+            if(is_array($section['resources'])) {
+                foreach($section['resources'] as $l => $resource) {
+                    $sections[$k]['resources'][$l]['trimmed_name'] = $this->trim($resource['name']);
+                }
             }
         }
 
