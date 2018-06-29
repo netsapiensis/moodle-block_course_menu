@@ -42,11 +42,12 @@ class block_course_menu extends block_base
         'calendar', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings'
     );
     private $contentgenerated = false;
+    protected $section_names = array();
+
+    public $blockname;
 
     function init()
     {
-        global $CFG;
-
         $this->blockname = get_class($this);
         $this->title = get_string('pluginname', $this->blockname);
     }
@@ -61,10 +62,47 @@ class block_course_menu extends block_base
         return true;
     }
 
+    /**
+     * Gets Javascript that may be required for navigation
+     */
+    function load_all_js($expandable)
+    {
+        global $CFG;
+        user_preference_allow_ajax_update('docked_block_instance_' . $this->instance->id, PARAM_INT);
+        $limit = 20;
+        if (!empty($CFG->navcourselimit)) {
+            $limit = $CFG->navcourselimit;
+        }
+        $expansionlimit = 0;
+        if (!empty($this->config->expansionlimit)) {
+            $expansionlimit = $this->config->expansionlimit;
+        }
+        if (!empty($CFG->block_course_menu_docked_background)) {
+            $bg_color = $CFG->block_course_menu_docked_background;
+        } else {
+            $bg_color = self::DEFAULT_DOCKED_BG;
+        }
+        $arguments = array(
+            'id' => $this->instance->id,
+            'instance' => $this->instance->id,
+            'candock' => $this->instance_can_be_docked(),
+            'courselimit' => $limit,
+            'expansionlimit' => $expansionlimit,
+            'bg_color' => $bg_color,
+            'expansions' => $expandable
+        );
+
+        $this->page->requires->string_for_js('viewallcourses', 'moodle');
+        $this->page->requires->yui_module(array('moodle-core-dock', 'moodle-block_course_menu-navigation'), 'M.block_course_menu.init_add_tree', array($arguments));
+    }
+
     function get_content()
     {
+        if ($this->contentgenerated) {
+            return $this->content;
+        }
 
-        global $CFG, $USER, $DB;
+        global $CFG, $USER, $DB, $OUTPUT;
 
         if ($this->page->course->id == SITEID) {
             if (!empty($CFG->block_course_menu_sitetitle)) {
@@ -75,9 +113,7 @@ class block_course_menu extends block_base
             $this->_site_level = 1;
         }
 
-        if ($this->contentgenerated) {
-            return $this->content;
-        }
+        $this->content = new stdClass();
 
         $this->course = $this->page->course;
 
@@ -90,17 +126,13 @@ class block_course_menu extends block_base
         $sessionVar = $_SESSION['cm_tree'][$this->instance->id]['expanded_elements'];
 
         $this->check_default_config();
-
         //newly added elements
         //participatlist -> 2012-10-15
         if (!$this->element_exists('sitepages')) {
             $this->init_default_config();
         }
 
-		$sections = $this->get_sections();
-		
-        // courseFormat
-        $courseFormat = $this->course->format == 'topics' ? 'topic' : 'week';
+        $sections = $this->get_sections();
 
         $this->page->navigation->initialise();
         $navigation = array(clone($this->page->navigation));
@@ -108,17 +140,7 @@ class block_course_menu extends block_base
         $settings = $this->page->settingsnav->children;
 
         // displaysection - current section
-        $week = optional_param($courseFormat, -1, PARAM_INT);
-
-        if ($week != -1) {
-            $displaysection = course_set_display($this->course->id, $week);
-        } else {
-            if (isset($USER->display[$this->course->id])) {
-                $displaysection = $USER->display[$this->course->id];
-            } else {
-                $displaysection = course_set_display($this->course->id, 0);
-            }
-        }
+        $displaysection = optional_param('section', -1, PARAM_INT);
 
         // section names
         foreach ($sections as $k => $section) {
@@ -171,31 +193,10 @@ class block_course_menu extends block_base
             }
         }
 
-        $this->page->requires->yui2_lib('dom');
-
-        $module = array('name' => 'block_course_menu', 'fullpath' => '/blocks/course_menu/course_menu.js', 'requires' => array('core_dock', 'io', 'node', 'dom', 'event-custom', 'json-parse'), 'strings' => array(array('viewallcourses', 'moodle')));
-        $limit = 20;
-
-        if (!empty($CFG->block_course_menu_docked_background)) {
-            $bg_color = $CFG->block_course_menu_docked_background;
-        } else {
-            $bg_color = self::DEFAULT_DOCKED_BG;
-        }
-
-        $arguments = array(
-            $this->instance->id,
-            array(
-                'expansions' => $expandable,
-                'instance' => $this->instance->id,
-                'candock' => $this->instance_can_be_docked(),
-                'courselimit' => $limit,
-                'docked' => $this->_docked,
-                'bg_color' => $bg_color
-            )
-        );
-        $this->page->requires->js_init_call('M.block_course_menu.init_add_tree', $arguments, false, $module);
+        $this->load_all_js($expandable);
 
         //render output
+        /** @var block_course_menu_renderer $renderer */
         $renderer = $this->page->get_renderer('block_course_menu');
         if ($this->_site_level) {
             $renderer->session = $_SESSION['cm_tree'][$this->instance->id]['expanded_elements'];
@@ -205,6 +206,7 @@ class block_course_menu extends block_base
         $lis = '';
         $linkIndex = 0;
         $first = true;
+
         foreach ($this->config->elements as $element) {
             $element['name'] = $this->get_name($element['id']);
             $element['children'] = array();
@@ -218,20 +220,11 @@ class block_course_menu extends block_base
                             $lis .= $renderer->render_chapter_tree($this->instance->id, $this->config, $chapters, $sections, $displaysection, !$first);
                             break;
                         case 'showallsections':
-                            //show element just in case there is only one topic / week visible
                             $courseFormat = $this->course->format == 'topics' ? 'topic' : 'week';
-                            if ($displaysection) {
-                                $_SESSION['cm_tree'][$this->instance->id]['last_active'] = $displaysection;
-                                $element['name'] = get_string("showall{$courseFormat}s", $this->blockname);
-                                $element['url'] = "$CFG->wwwroot/course/view.php?id={$this->course->id}&{$courseFormat}=all#section-{$displaysection}";
-                                $lis .= $renderer->render_leaf($element['name'], $icon, array('id' => 'showallsections'), $element['url'], false, '', !$first);
-                            } else {
-                                $ss = !empty($_SESSION['cm_tree'][$this->instance->id]['last_active']) ? $_SESSION['cm_tree'][$this->instance->id]['last_active'] : '1';
-                                $element['name'] = get_string("showonly{$courseFormat}", $this->blockname) . " ";
-                                $element['url'] = "$CFG->wwwroot/course/view.php?id={$this->course->id}&{$courseFormat}={$ss}";
-                                $weekNr = html_writer::tag('span', $ss, array('id' => 'showonlysection_nr'));
-                                $lis .= $renderer->render_leaf($element['name'], $icon, array('id' => 'showallsections'), $element['url'], false, $weekNr, !$first);
-                            }
+                            $element['url'] = "$CFG->wwwroot/course/view.php?id={$this->course->id}&{$courseFormat}=all";
+                            $lis .= $renderer->render_leaf($element['name'], $icon, array(), $element['url'], false, '', !$first);
+                            break;
+                        case 'coursemainpage': //this has been removed in Course Menu for Moodle 2.3
                             break;
                         case 'calendar':
                             $element['url'] = "$CFG->wwwroot/calendar/view.php?view=upcoming&course=" . $this->course->id;
@@ -240,21 +233,21 @@ class block_course_menu extends block_base
                         case 'participants':
                             if ($node_collection instanceof navigation_node_collection) {
                                 $_node = $node_collection->find($this->page->course->id, global_navigation::TYPE_COURSE)->children->get('participants');
-                            //check capabilities
-                            // user/index.php expect course context, so get one if page has module context.
-                            $currentcontext = $this->page->context->get_course_context(false);
-                                if (! (empty($currentcontext) || 
-                                    ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', get_context_instance(CONTEXT_SYSTEM))) ||
+                                //check capabilities
+                                // user/index.php expect course context, so get one if page has module context.
+                                $currentcontext = $this->page->context->get_course_context(false);
+                                if (!(empty($currentcontext) ||
+                                        ($this->page->course->id == SITEID && !has_capability('moodle/site:viewparticipants', context_system::instance())) ||
                                         !has_capability('moodle/course:viewparticipants', $currentcontext))) {
-                                    
-                            $element['url'] = $CFG->wwwroot . '/user/index.php?contextid=' . $currentcontext->id;
+
+                                    $element['url'] = $CFG->wwwroot . '/user/index.php?contextid=' . $currentcontext->id;
                                     $child_node = new navigation_node(array(
                                         'text' => get_string('participantlist', $this->blockname),
                                         'shorttext' => get_string('participantlist', $this->blockname),
                                         'icon' => new pix_icon('i/users', get_string('participantlist', $this->blockname)),
                                         'action' => $element['url']
                                     ));
-                                    $_node->add_node($child_node, 0);
+                                    $_node->add_node($child_node);
                                 }
                                 $lis .= $renderer->render_navigation_node($_node, $expansionlimit, !$first);
                             }
@@ -262,7 +255,19 @@ class block_course_menu extends block_base
                         case 'reports':
                             if ($node_collection instanceof navigation_node_collection) {
                                 $_course = $node_collection->find($this->page->course->id, global_navigation::TYPE_COURSE)->children;
-                                $_node = $_course->get(1, global_navigation::TYPE_CONTAINER);
+                                $_node = $_course->get(1, global_navigation::TYPE_CONTAINER); // Moodle 2.3 - 2.6
+                                if (empty($_node)) { // Moodle >= 2.6
+                                    $settings = $this->page->settingsnav->children;
+                                    $admin_node = $settings->get('courseadmin');
+                                    if ($admin_node && $admin_node->has_children()) {
+                                        foreach ($admin_node->find_all_of_type(navigation_node::TYPE_CONTAINER) as $settings_node) {
+                                            if ($settings_node->text == get_string('reports')) {
+                                                $_node = $settings_node;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                                 if ($_node instanceof navigation_node) {
                                     $lis .= $renderer->render_navigation_node($_node, $expansionlimit, !$first);
                                 }
@@ -274,7 +279,7 @@ class block_course_menu extends block_base
                                 $index = intval($matches[1]);
                                 if ($index && isset($this->config->links[$index])) { //this should always happen
                                     $lis .= $renderer->render_link($this->config->links[$index], $this->course->id, !$first);
-                                } else {
+                                } elseif (isset($this->config->links[$linkIndex])) { //weird bug #0000166 
                                     $lis .= $renderer->render_link($this->config->links[$linkIndex], $this->course->id, !$first);
                                     $linkIndex++;
                                 }
@@ -290,9 +295,7 @@ class block_course_menu extends block_base
                                         $type = global_navigation::TYPE_ROOTNODE;
                                     }
                                     $all = $node_collection->type($type);
-
                                     $good = array();
-
                                     if (is_array($all) && count($all)) {
                                         foreach ($all as $item) {
                                             if ($item->text == get_string($element['id'])) {
@@ -301,8 +304,7 @@ class block_course_menu extends block_base
                                             }
                                         }
                                     }
-
-                                    if ($good instanceof navigation_node && $good->children->count()) {
+                                    if ($good instanceof navigation_node) {
                                         $lis .= $renderer->render_navigation_node($good, $expansionlimit, !$first);
                                     }
                                 } elseif ($this->is_settings_element($element['id'])) {
@@ -319,13 +321,13 @@ class block_course_menu extends block_base
                                     $s = array();
                                     if (is_array($all) && count($all)) {
                                         foreach ($all as $item) {
-                                            if ($item->text == get_string($key)) {
+                                            if ($item->text == get_string($key, $this->blockname)) {
                                                 $s = $item;
                                                 break;
                                             }
                                         }
                                     }
-                                    if ($s instanceof navigation_node && $s->children->count()) {
+                                    if ($s instanceof navigation_node) {
                                         $lis .= $renderer->render_navigation_node($s, $expansionlimit, !$first);
                                     }
                                 }
@@ -339,18 +341,19 @@ class block_course_menu extends block_base
         $output .= '</div>';
 
         $this->contentgenerated = true;
-        $this->content->text = $output;
+        $this->content->text = '<style>.block_navigation .block_tree .tree_item.hasicon{white-space:normal;}</style>'.$output;
 
         return $this->content;
     }
 
-    public function find_expandable($navigation, array &$expandable)
+    public function find_expandable(& $navigation, array &$expandable)
     {
         foreach ($navigation->children as &$child) {
-            if ($child->nodetype == global_navigation::NODETYPE_BRANCH && $child->children->count() == 0 && $child->display) {
+            if ($child->display && $child->has_children() && $child->children->count() == 0) {
                 $child->id = 'cm_expandable_branch_' . (count($expandable) + 1);
+                $child->skip_record_events = true;
                 $navigation->add_class('canexpand');
-                $expandable[] = array('id' => $child->id, 'branchid' => $child->key, 'type' => $child->type);
+                $expandable[] = array('id' => $child->id, 'key' => $child->key, 'type' => $child->type);
             }
             $this->find_expandable($child, $expandable);
         }
@@ -363,10 +366,8 @@ class block_course_menu extends block_base
         // elements -------------------------------------------------------------------------
         $elements = array();
         $elements[] = $this->create_element("tree", $this->get_name("tree"), '', '', 0);
-        // showallsections
-        $elements[] = $this->create_element(
-                "showallsections", $this->get_name("showallsections"), "", "{$CFG->wwwroot}/blocks/course_menu/icons/viewall.gif"
-        );
+
+        $elements []= $this->create_element('showallsections', $this->get_name('showallsections'), '', $CFG->wwwroot . '/blocks/course_menu/icons/viewall.gif', 1, 0);
 
         // calendar
         $elements[] = $this->create_element(
@@ -380,7 +381,7 @@ class block_course_menu extends block_base
 
         //my profile
         $elements [] = $this->create_element(
-                'myprofile', get_string("myprofile"), '', '', 1, $this->_site_level, 1
+                'myprofile', get_string("myprofile", "block_course_menu"), '', '', 1, $this->_site_level, 1
         );
 
         //my course
@@ -462,12 +463,10 @@ class block_course_menu extends block_base
     function check_default_config()
     {
         global $CFG;
+
         if (empty($this->config) || !is_object($this->config) || (!$this->_site_level && empty($this->config->chapters))) {
             //try global config
-            if ($this->_site_level) {
-
-                $this->init_default_config();
-            } elseif (!empty($CFG->block_course_menu_global_config)) {
+            if (!empty($CFG->block_course_menu_global_config)) {
                 $this->config = unserialize($CFG->block_course_menu_global_config);
                 // chaptering -----------------------------------------------------------------------
                 $this->config->chapEnable = 0;
@@ -488,6 +487,11 @@ class block_course_menu extends block_base
             } else {
                 $this->init_default_config();
             }
+        }
+        $this->remove_deprecated();
+        /* check instance config values that are missing and add them from global config */
+        if (empty($this->config->trimlength) && !empty($CFG->block_course_menu_trimlength)) {
+            $this->config->trimlength = $CFG->block_course_menu_trimlength;
         }
     }
 
@@ -545,7 +549,6 @@ class block_course_menu extends block_base
                 for ($i = $sectCount; $i < $chapCount; $i++) {
                     unset($this->config->chapters[$i]);
                 }
-                $chapCount = $sectCount;
             }
             $this->config->subChaptersCount = count($this->config->chapters);
 
@@ -603,7 +606,7 @@ class block_course_menu extends block_base
                 if (strstr($elementId, "link") !== false) {
                     return get_string("link", $this->blockname);
                 }
-                if (in_array($elementId, array('sitepages', 'mycourses', 'myprofile'))) {
+                if (in_array($elementId, array('sitepages', 'mycourses'/*, 'myprofile'*/))) {
                     return get_string($elementId);
                 }
                 return get_string($elementId, $this->blockname);
@@ -617,36 +620,30 @@ class block_course_menu extends block_base
         if (!empty($this->instance) && $this->page->course->id != SITEID) {
 
             require_once($CFG->dirroot . "/course/lib.php");
-            get_all_mods($this->course->id, $mods, $modnames, $modnamesplural, $modnamesused);
 
-            $context = get_context_instance(CONTEXT_COURSE, $this->course->id);
-            $isteacher = has_capability('moodle/course:update', $context);
+            $context = context_course::instance($this->course->id);
 
-            $courseFormat = $this->course->format == 'topics' ? 'topic' : 'week';
+            $genericName = get_string("sectionname", 'format_' . $this->course->format);
 
-            // displaysection - current section
-            $week = optional_param($courseFormat, -1, PARAM_INT);
-            if ($week != -1) {
-                $displaysection = course_set_display($this->course->id, $week);
-            } else {
-                if (isset($USER->display[$this->course->id])) {
-                    $displaysection = $USER->display[$this->course->id];
-                } else {
-                    $displaysection = course_set_display($this->course->id, 0);
-                }
+            $modinfo = get_fast_modinfo($this->page->course);
+            $mods = $modinfo->get_cms();
+            //keep backwards compatibillity with moodle 2.3
+            if (!isset($this->course->numsections) && function_exists('course_get_format')) {
+                $this->course = course_get_format($this->course)->get_course();
             }
-
-            $genericName = get_string("name" . $this->course->format, $this->blockname);
-            $allSections = get_all_sections($this->course->id);
-
+            $allSections = $modinfo->get_section_info_all();
             $sections = array();
             if ($this->course->format != 'social' && $this->course->format != 'scorm') {
                 foreach ($allSections as $k => $section) {
 
-                    if ($k <= $this->course->numsections) { // get_all_sections() may return sections that are in the db but not displayed because the number of the sections for this course was lowered - bug [CM-B10]
+                    if (!isset($this->course->numsections) || $k <= $this->course->numsections) {
                         if (!empty($section)) {
                             $newSec = array();
                             $newSec['visible'] = $section->visible;
+                            $newSec['uservisible'] = !empty($section->uservisible) ? $section->uservisible : 0;
+                            $newSec['availableinfo'] = !empty($section->availableinfo) ? $section->availableinfo : 0;
+                            $newSec['id'] = $section->section;
+                            $newSec['index'] = $k;
 
                             if (!empty($section->name)) {
                                 $strsummary = trim($section->name);
@@ -655,92 +652,54 @@ class block_course_menu extends block_base
                             }
 
                             $strsummary = $this->trim($strsummary);
-                            $strsummary = trim($this->clearEnters($strsummary));
                             $newSec['name'] = $strsummary;
+                            $newSec['url'] = course_get_url($this->course, $k);
 
-                            // url
-                            if ($displaysection != 0) {
-                                $newSec['url'] = "{$CFG->wwwroot}/course/view.php?id={$this->course->id}&$courseFormat=$k";
-                            } else {
-                                $url = (string) $this->page->url;
-                                if (!preg_match("/\/course\/view.php/", $url)) {
-                                    $newSec['url'] = "{$CFG->wwwroot}/course/view.php?id={$this->course->id}#section-$k";
-                                } else {
-                                    $newSec['url'] = "#section-$k";
-                                }
-                            }
-
-                            // resources
-                            $modinfo = unserialize($this->course->modinfo);
-
-                            $newSec['resources'] = array();
-                            $sectionmods = explode(",", $section->sequence);
-                            foreach ($sectionmods as $modnumber) {
-                                if (empty($mods[$modnumber])) {
-                                    continue;
-                                }
-                                $mod = $mods[$modnumber];
-                                if ($mod->visible or $isteacher) {
-                                    $instancename = urldecode($modinfo[$modnumber]->name);
-                                    if (!empty($CFG->filterall)) {
-                                        $instancename = filter_text($instancename, $this->course->id);
+                            if ($section->uservisible) {
+                                // resources
+                                $newSec['resources'] = array();
+                                $sectionmods = explode(",", $section->sequence);
+                                foreach ($sectionmods as $modnumber) {
+                                    if (empty($mods[$modnumber])) {
+                                        continue;
                                     }
+                                    $mod = $mods[$modnumber];
+                                    if ($mod->uservisible) {
+                                        $instancename = urldecode($mod->name);
 
-                                    if (!empty($modinfo[$modnumber]->extra)) {
-                                        $extra = urldecode($modinfo[$modnumber]->extra);
-                                    } else {
-                                        $extra = "";
-                                    }
+                                        if (!empty($CFG->filterall)) {
+                                            $instancename = filter_manager::instance()->filter_text($instancename, $context);
+                                        }
 
-                                    // don't do anything for labels
-                                    if ($mod->modname != 'label') {
-                                        // Normal activity
-                                        if ($mod->visible) {
+                                        // don't do anything for labels
+                                        if ($mod->has_view()) {
+                                            // Normal activity
+
                                             if (!strlen(trim($instancename))) {
                                                 $instancename = $mod->modfullname;
                                             }
-                                            
-                                            $resource = array();
-                                            if ($mod->modname != 'resource') {
-                                                $resource['name'] = $instancename;
-                                                $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                if (is_object($icon)) {
-                                                    $resource['icon'] = $icon->__toString();
-                                                } else {
-                                                    $resource['icon'] = '';
-                                                }
-                                            } else {
-                                                require_once($CFG->dirroot . '/mod/resource/lib.php');
-                                                $info = resource_get_coursemodule_info($mod);
-                                                if (isset($info->icon)) {
-                                                    $resource['name'] = $info->name;
-                                                    $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                    $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    if (is_object($icon)) {
-                                                        $resource['icon'] = $icon->__toString();
-                                                    } else {
-                                                        $resource['icon'] = '';
-                                                    }
-                                                } else if (!isset($info->icon)) {
-                                                    $resource['name'] = $info->name;
-                                                    $resource['url'] = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                    $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    if (is_object($icon)) {
-                                                        $resource['icon'] = $icon->__toString();
-                                                    } else {
-                                                        $resource['icon'] = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    }
-                                                }
-                                            }
+
+                                            $url = isset($mod->url) ? /* >= Moodle 2.6 */ $mod->url : /* Moodle 2.3 - Moodle 2.6  */ $mod->get_url();
+
+                                            $iconurl = $mod->get_icon_url();
+
+                                            $resource = array(
+                                                'name' => $instancename,
+                                                'url' => $url ? $url->out() : '',
+                                                'icon' => $iconurl ? $iconurl->out() : '',
+                                            );
+
                                             $newSec['resources'][] = $resource;
                                         }
                                     }
                                 }
                             }
+
+                            $showsection = $section->uservisible ||
+                                    ($section->visible && !$section->available && !empty($section->availableinfo));
                             //hide hidden sections from students if the course settings say that - bug #212
-                            $coursecontext = get_context_instance(CONTEXT_COURSE, $this->course->id);
-                            if (!($section->visible == 0 && !has_capability('moodle/course:viewhiddensections', $coursecontext))) {
+                            $coursecontext = context_course::instance($this->course->id);
+                            if (!($section->visible == 0 && !has_capability('moodle/course:viewhiddensections', $coursecontext)) && $showsection) {
                                 $sections[] = $newSec;
                             }
                         }
@@ -763,21 +722,20 @@ class block_course_menu extends block_base
         $icons = array();
         $icons[0]['name'] = get_string('noicon', $this->blockname);
         $icons[0]['img'] = '';
+        $icons[0]['val'] = '';
         $icons[1]['name'] = get_string('linkfileorsite', $this->blockname);
         $icons[1]['img'] = "{$CFG->wwwroot}/blocks/course_menu/icons/link.gif";
+        $icons[1]['val'] = $icons[1]['img'];
         $icons[2]['name'] = get_string('displaydirectory', $this->blockname);
         $icons[2]['img'] = "{$CFG->wwwroot}/blocks/course_menu/icons/directory.gif";
+        $icons[2]['val'] = $icons[2]['img'];
 
         $allmods = $DB->get_records("modules");
         foreach ($allmods as $mod) {
             $icon = array();
             $icon['name'] = get_string("modulename", $mod->name);
-            $obj = $OUTPUT->pix_url('icon', $mod->name);
-            if (is_object($obj)) {
-                $icon['img'] = $obj->__toString();
-            } else {
-                $icon['img'] = '';
-            }
+            $icon['img'] = (string) $OUTPUT->image_url('icon', $mod->name);
+            $icon['val'] = 'pix_' . $mod->name;
 
             $icons[] = $icon;
         }
@@ -795,60 +753,41 @@ class block_course_menu extends block_base
         if (!empty($this->config->trimlength)) {
             $length = (int) $this->config->trimlength;
         }
-        $textlib = textlib_get_instance();
-        $str_length = $textlib->strlen($str);
-        if ($str_length <= ($length + 3)) {
-            return $str;
-        }
+
+        $str_length = class_exists('core_text') ?
+            /* >= Moodle 2.6 */ core_text::strlen($str) :
+            /* Moodle 2.3 - Moodle 2.6 */ textlib::strlen($str);
+
         switch ($mode) {
             case self::TRIM_RIGHT :
-                return $this->trim_right($textlib, $str, $length);
+                if ($str_length > ($length + 3)) {
+                    return (class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ substr($str, 0, $length) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, 0, $length)) . '...';
+                }
+                break;
             case self::TRIM_LEFT :
-                return $this->trim_left($textlib, $str, $length);
+                if ($str_length > ($length + 3)) {
+                    return '...' . (class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ core_text::substr($str, $str_length - $length) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, $str_length - $length));
+                }
+                break;
             case self::TRIM_CENTER :
-                return $this->trim_center($textlib, $str, $length);
+                if ($str_length > ($length + 3)) {
+                    $trimlength = ceil($length / 2);
+                    $start = class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ core_text::substr($str, 0, $trimlength) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, 0, $trimlength);
+                    $end = class_exists('core_text') ?
+                        /* >= Moodle 2.6 */ core_text::substr($str, $str_length - $trimlength) :
+                        /* Moodle 2.3 - Moodle 2.6 */ textlib::substr($str, $str_length - $trimlength);
+                    $string = $start . '...' . $end;
+                    return $string;
+                }
         }
+
         return $str;
-    }
-
-    /**
-     * Truncate a string from the left
-     * @param textlib $textlib
-     * @param string $string The string to truncate
-     * @param int $length The length to truncate to
-     * @return string The truncated string
-     */
-    protected function trim_left($textlib, $string, $length)
-    {
-        return '...' . $textlib->substr($string, $textlib->strlen($string) - $length);
-    }
-
-    /**
-     * Truncate a string from the right
-     * @param textlib $textlib
-     * @param string $string The string to truncate
-     * @param int $length The length to truncate to
-     * @return string The truncated string
-     */
-    protected function trim_right($textlib, $string, $length)
-    {
-        return $textlib->substr($string, 0, $length) . '...';
-    }
-
-    /**
-     * Truncate a string in the center
-     * @param textlib $textlib
-     * @param string $string The string to truncate
-     * @param int $length The length to truncate to
-     * @return string The truncated string
-     */
-    protected function trim_center($textlib, $string, $length)
-    {
-        $trimlength = ceil($length / 2);
-        $start = $textlib->substr($string, 0, $trimlength);
-        $end = $textlib->substr($string, $textlib->strlen($string) - $trimlength);
-        $string = $start . '...' . $end;
-        return $string;
     }
 
     function config_chapters()
@@ -859,13 +798,13 @@ class block_course_menu extends block_base
         $this->check_default_config();
         $chapters = $this->config->chapters;
         $sections = $this->get_sections();
-        $sectionNames = array();
+        $this->section_names = array();
         foreach ($sections as $section) {
-            $sectionNames[] = $section['name'];
+            $this->section_names[] = $section['name'];
         }
         $this->check_redo_chaptering(count($sections));
+        $sectionNames = array();
         ob_start();
-        include ("{$CFG->dirroot}/blocks/course_menu/css/styles.php");
         include ("{$CFG->dirroot}/blocks/course_menu/config/chapters.php");
         $cc = ob_get_contents();
         ob_end_clean();
@@ -879,6 +818,21 @@ class block_course_menu extends block_base
         $this->course = $this->page->course;
         if (!$this->element_exists('sitepages')) {
             $this->init_default_config();
+        }
+
+        if (!$this->element_exists('showallsections')) {
+            array_splice($this->config->elements, 1, 0, array($this->create_element('showallsections', $this->get_name('showallsections'), '', $CFG->wwwroot . '/blocks/course_menu/icons/viewall.gif', 1, 0)));
+        }
+
+        if ($this->page->course->id == SITEID) {
+            $elements = array();
+            $allowed = array('calendar', 'sitepages', 'myprofile', 'mycourses', 'myprofilesettings');
+            foreach ($this->config->elements as $element) {
+                if (in_array($element['id'], $allowed) || substr($element['id'], 0, 4) == 'link') {
+                    $elements [] = $element;
+                }
+            }
+            $this->config->elements = $elements;
         }
 
         ob_start();
@@ -911,13 +865,21 @@ class block_course_menu extends block_base
         if ($data->chapEnable == 0) {
             $data->subChapEnable = 0;
         }
+
+        $chapterNames = optional_param_array('chapterNames', array(), PARAM_RAW_TRIMMED);
+        $childrenElementsNo = optional_param_array('chapterChildElementsNumber', array(), PARAM_INT);
+        $chapterCounts = optional_param_array('chapterCounts', array(), PARAM_INT);
+        $childElementTypes = optional_param_array('childElementTypes', array(), PARAM_ALPHANUMEXT);
+        $childElementCounts = optional_param_array('childElementCounts', array(), PARAM_INT);
+        $childElementNames = optional_param_array('childElementNames', array(), PARAM_RAW_TRIMMED);
+
         if ($this->page->course->id != SITEID) { //save chapters
-            foreach ($_POST['chapterNames'] as $k => $name) {
+            foreach ($chapterNames as $k => $name) {
                 $chapter = array();
                 $chapter['name'] = $name;
                 $chapter['childElements'] = array();
 
-                for ($i = $lastIndex; $i < $lastIndex + $_POST['chapterChildElementsNumber'][$k]; $i++) {
+                for ($i = $lastIndex; $i < $lastIndex + $childrenElementsNo[$k]; $i++) {
                     $child = array();
                     if ($data->chapEnable == 0) { //only one subchapter
                         $child['type'] = "subchapter";
@@ -927,13 +889,13 @@ class block_course_menu extends block_base
                         $child['type'] = "subchapter";
                         $xx = $k + 1;
                         $child['name'] = get_string("subchapter", "block_course_menu") . " {$xx}-1";
-                        $child['count'] = $_POST['chapterCounts'][$k];
+                        $child['count'] = $chapterCounts[$k];
                     } else {
-                        $child['type'] = $_POST['childElementTypes'][$i];
+                        $child['type'] = $childElementTypes[$i];
                         if ($child['type'] == "subchapter") {
-                            $child['count'] = $_POST['childElementCounts'][$i];
+                            $child['count'] = $childElementCounts[$i];
                             $total += $child['count'];
-                            $child['name'] = $_POST['childElementNames'][$i];
+                            $child['name'] = $childElementNames[$i];
                         }
                     }
                     $chapter['childElements'][] = $child;
@@ -962,70 +924,59 @@ class block_course_menu extends block_base
 
         // elements
         $data->elements = array();
-        foreach ($_POST['ids'] as $k => $id) {
-            $url = $_POST['urls'][$k];
-            $icon = $_POST['icons'][$k];
-            $canHide = $_POST['canHides'][$k];
-            $visible = $_POST['visibles'][$k];
-            $name = $this->get_name($id);
-            $data->elements[] = $this->create_element($id, $name, $url, $icon, $canHide, $visible);
+        $ids = optional_param_array('ids', array(), PARAM_RAW_TRIMMED);
+        $urls = optional_param_array('urls', array(), PARAM_RAW_TRIMMED);
+        $icons = optional_param_array('icons', array(), PARAM_RAW_TRIMMED);
+        $canHides = optional_param_array('canHides', array(), PARAM_INT);
+        $visibles = optional_param_array('visibles', array(), PARAM_INT);
+
+        foreach ($ids as $k => $id) {
+            if (empty($id)) {
+                continue;
+            }
+            if (strpos($id, 'link') !== false) {
+                $index = str_replace('link', '', $id);
+                $name = optional_param('cm_link_name' . $index, '', PARAM_RAW_TRIMMED);
+                if (!$name) {
+                    $name = get_string('link', 'block_course_menu');
+                }
+            } else {
+                $name = $this->get_name($id);
+            }
+            $data->elements[] = $this->create_element($id, $name, $urls[$k], $icons[$k], $canHides[$k], $visibles[$k]);
         }
 
         //links
+        $linkCounter = optional_param_array('linkCounter', array(), PARAM_INT);
         $data->links = array();
-        if (isset($_POST['linkNames'])) { // means: if instance config. we don't have links in global config
-            foreach ($_POST['linkNames'] as $k => $name) {
-                $link = array();
-                $link['name'] = $name;
-                $link['target'] = $_POST['linkTargets'][$k];
-                $link['icon'] = $_POST['linkIcons'][$k];
-
-                // url
-                $link['url'] = $_POST['linkUrls'][$k];
-                if (strpos($_POST['linkUrls'][$k], "://") === false) {
-                    // if no protocol then add "http://" - [CM-TD2]
-                    $link['url'] = "http://" . $link['url'];
-                }
-
-                // checkbox configs
-                $idx = "keeppagenavigation$k";
-                $link['keeppagenavigation'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowresize$k";
-                $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowresize$k";
-                $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowresize$k";
-                $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowscroll$k";
-                $link['allowscroll'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showdirectorylinks$k";
-                $link['showdirectorylinks'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showlocationbar$k";
-                $link['showlocationbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showmenubar$k";
-                $link['showmenubar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showtoolbar$k";
-                $link['showtoolbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showstatusbar$k";
-                $link['showstatusbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                // defaultwidth + defaultheight
-                $link['defaultwidth'] = !empty($_POST['defaultwidth'][$k]) ? $_POST['defaultwidth'][$k] : 0;
-                $link['defaultheight'] = !empty($_POST['defaultheight'][$k]) ? $_POST['defaultheight'][$k] : 0;
-
-                $data->links[] = $link;
+        foreach ($linkCounter as $k => $notimportant) {
+            $url = optional_param('cm_link_url' . $k, '', PARAM_RAW_TRIMMED);
+            if (empty($url)) { //no empty urls
+                continue;
             }
+            $link = array();
+            $link['name'] = optional_param('cm_link_name' . $k, '', PARAM_RAW_TRIMMED);
+            $link['target'] = optional_param('cm_link_target' . $k, '', PARAM_RAW_TRIMMED);
+            $link['icon'] = optional_param('cm_link_icon' . $k, '', PARAM_RAW_TRIMMED);
+            // url
+            $link['url'] = $url;
+            if (!preg_match('/http(s)?:\/\//i', $link['url'])) {
+                $link['url'] = 'http://' . $link['url'];
+            }
+
+            // checkbox configs
+            foreach ($this->get_link_checkboxes() as $field) {
+                $idx = "cm_link_{$field}{$k}";
+                $link[$field] = optional_param($idx, '', PARAM_RAW_TRIMMED) ? 1 : 0;
+            }
+            // defaultwidth + defaultheight
+            $link['defaultwidth'] = optional_param('cm_link_defaultwidth' . $k, 0, PARAM_INT);
+            $link['defaultheight'] = optional_param('cm_link_defaultheight' . $k, 0, PARAM_INT);
+
+            $data->links[] = $link;
         }
-        return parent::instance_config_save($data, $nolongerused);
+
+        parent::instance_config_save($data, $nolongerused);
     }
 
     public function has_config()
@@ -1035,30 +986,44 @@ class block_course_menu extends block_base
 
     function output_global_config()
     {
-        global $CFG, $THEME, $OUTPUT;
-        // required stuff
+        global $CFG, $THEME, $OUTPUT, $PAGE;
         $icons = $this->get_link_icons();
-
         // if any config is missing then set eveything to default
         if (empty($CFG->block_course_menu_global_config)) {
             $this->init_default_config(false);
         } else {
             $this->config = @unserialize($CFG->block_course_menu_global_config);
-
             if (!$this->element_exists('sitepages')) {
                 $this->init_default_config(false);
+            } else {
+                if ($this->remove_deprecated()) {
+                    $CFG->block_course_menu_global_config = serialize($this->config);
+                    set_config('block_course_menu_global_config', $CFG->block_course_menu_global_config);
+                }
             }
+        }
+
+        if (!$this->element_exists('showallsections')) {
+            array_splice($this->config->elements, 1, 0, array(
+                $this->create_element('showallsections', $this->get_name('showallsections'), '', $CFG->wwwroot . '/blocks/course_menu/icons/viewall.gif', 1, 0)
+            ));
         }
 
         // elements: set names
         foreach ($this->config->elements as $k => $element) {
-            $this->config->elements[$k]['name'] = $this->get_name($element['id']);
+            if (empty($element['name'])) {
+                $this->config->elements[$k]['name'] = $this->get_name($element['id']);
+            }
         }
+
+        $PAGE->requires->yui_module(
+                array('moodle-block_course_menu-settings'), 'M.block_course_menu_settings.global', array($this->get_settings_util_js(), $this->config), null, true);
 
         ob_start();
         include ("{$CFG->dirroot}/blocks/course_menu/config/global.php");
         $cc = ob_get_contents();
         ob_end_clean();
+
         return $cc;
     }
 
@@ -1098,6 +1063,71 @@ class block_course_menu extends block_base
         }
     }
 
-}
+    function remove_deprecated()
+    {
+        //showallsections has been removed
+        $removed = 0;
+        foreach ($this->config->elements as $k => $element) {
+            if ($element['id'] == 'coursemainpage') {
+                array_splice($this->config->elements, $k - $removed, 1);
+                $removed++;
+            }
+        }
 
-?>
+        if ($removed > 0) {
+            if (!empty($this->instance) && !empty($this->instance->id)) {
+                $this->save_config_to_db();
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    public function get_settings_util_js()
+    {
+        global $OUTPUT;
+        $util = array();
+        foreach (array('chaptering', 'subchaptering', 'numberofchapter', 'numberofsubchapter', 'change', 'defaultgrouping', 'chapters',
+    'chapter', 'subchapter', 'subchapters', 'wrongnumber', 'wrongsubchapnumber', 'warningchapnochange', 'warningsubchapnochange',
+    'activatecustomlinks', 'numberoflinks', 'change', 'customlink', 'name', 'url', 'window', 'samewindow', 'newwindow',
+    'icon', 'linkswrongnumber', 'customlink', 'correcturlmsg', 'cannotmoveright', 'emptychapname', 'emptysubchapname',
+    'warningsubchapenable', 'keeppagenavigation', 'allowresize', 'allowscroll', 'showdirectorylinks', 'showlocationbar', 'showmenubar',
+    'showtoolbar', 'showstatusbar', 'defaultwidth', 'defaultheight', 'linknoname', 'linknourl', 'cannotmovetopicup',
+    'cannotmovetopicdown', 'sections') as $key) {
+            $util['str'][$key] = get_string($key, 'block_course_menu');
+        }
+
+        $util['img']['hide'] = (string) $OUTPUT->image_url('i/hide');
+        $util['img']['show'] = (string) $OUTPUT->image_url('i/show');
+        $util['img']['up'] = (string) $OUTPUT->image_url('t/up');
+        $util['img']['right'] = (string) $OUTPUT->image_url('t/right');
+        $util['img']['left'] = (string) $OUTPUT->image_url('t/left');
+        $util['img']['down'] = (string) $OUTPUT->image_url('t/down');
+        $util['img']['edit'] = (string) $OUTPUT->image_url('i/edit');
+
+        return $util;
+    }
+
+    public function get_config()
+    {
+        return $this->config;
+    }
+
+    public function get_section_names()
+    {
+        return $this->section_names;
+    }
+
+    public function get_link_checkboxes()
+    {
+        return array('keeppagenavigation', 'allowresize', 'allowscroll', 'showdirectorylinks',
+            'showlocationbar', 'showmenubar', 'showtoolbar', 'showstatusbar');
+    }
+
+    public function is_site_level()
+    {
+        return ($this->page->course->id == SITEID);
+    }
+
+}

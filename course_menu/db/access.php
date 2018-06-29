@@ -1,3 +1,5 @@
+<?php
+
 /*
  * ---------------------------------------------------------------------------------------------------------------------
  *
@@ -20,69 +22,25 @@
  * ---------------------------------------------------------------------------------------------------------------------
  */
 
-.active_tree_node {
-    font-weight: bold !important;
-}
+defined('MOODLE_INTERNAL') || die();
 
-.block_navigation .block_tree p.tree_item {
-    padding-top: 1px;
-}
-
-.link-template .clearfix {
-    height: 2px;
-}
-
-.link-template select {
-    width: 234px;
-    padding: 0;
-}
-#elementsContainer table td {
-    vertical-align: middle;
-    padding: 4px 2px;
-    font-size: 110%;
-}
-#elementsContainer table td img {
-    vertical-align: middle;
-}
-#elementsContainer table td.element-move-up {
-    padding-left: 10px;
-    padding-right: 0;
-}
-.clear {
-    clear: both;
-}
-.cm-table-structure td, .cm-table-structure td img {
-    vertical-align: middle;
-}
-#chaptersTableContainer table tr td {
-    padding: 2px 6px;
-    border: 1px solid #000;
-}
-a.enableDisable {
-    text-decoration: none !important;
-}
-a.showHide {
-    display: block;
-    padding-left: 20px;
-}
-a.showHide.minus {
-    background: url([[pix:t/expanded]]) right center no-repeat;
-    padding-left: 0;
-    padding-right: 20px;
-}
-
-a.showHide.plus {
-    background: url([[pix:t/collapsed]]) left center no-repeat;
-}
-
-.showHideCont {
-    float: right;
-    margin-right: 50px;
-}
-#linksTableContainer input.link-text.cm-error {
-    border: 1px solid red;
-}
-.block_navigation .block_tree [aria-expanded="false"], .block_navigation .block_tree [aria-expanded="true"] {
-    background-repeat: no-repeat;
-    background-position: left 10px;
-}
+$capabilities = array(
+    'block/course_menu:myaddinstance' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'user' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/my:manageblocks'
+    ),
+    'block/course_menu:addinstance' => array(
+        'riskbitmask' => RISK_SPAM | RISK_XSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_BLOCK,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/site:manageblocks'
+    ),
+);

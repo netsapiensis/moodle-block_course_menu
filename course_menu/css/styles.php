@@ -34,13 +34,13 @@ a.showHide {
     padding-left: 20px;
 }
 a.showHide.minus {
-    background: url("<?php echo $OUTPUT->pix_url('t/expanded') ?>") right center no-repeat;
+    background: url("<?php echo $OUTPUT->image_url('t/expanded') ?>") right center no-repeat;
     padding-left: 0;
     padding-right: 20px;
 }
 
 a.showHide.plus {
-    background: url("<?php echo $OUTPUT->pix_url('t/collapsed') ?>") left center no-repeat;
+    background: url("<?php echo $OUTPUT->image_url('t/collapsed') ?>") left center no-repeat;
 }
 
 .showHideCont {

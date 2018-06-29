@@ -1,4 +1,5 @@
 <?php
+
 /*
  * ---------------------------------------------------------------------------------------------------------------------
  *
@@ -23,23 +24,27 @@
 
 class block_course_menu_edit_form extends block_edit_form
 {
-    function definition_after_data() {
-        
+
+    function definition_after_data()
+    {
+
         $mform = $this->_form;
         if ($mform->getElementType('bui_contexts') == 'select') {
             $el = $mform->getElement('bui_contexts');
             $el->removeOption(2); // Remove 'whole site' option
-         }
+        }
     }
 
-    protected function specific_definition($mform) {
-        global $CFG;
-        $mform->addElement('header', 'configheader', get_string('blockgeneralsettings', $this->block->blockname));
+    protected function specific_definition($mform)
+    {
+        global $CFG, $PAGE;
         
+        $mform->addElement('header', 'configheader', get_string('blockgeneralsettings', $this->block->blockname));
+
         $options = array(
-            block_course_menu::TRIM_RIGHT   => get_string('trimmoderight', $this->block->blockname),
-            block_course_menu::TRIM_LEFT    => get_string('trimmodeleft', $this->block->blockname),
-            block_course_menu::TRIM_CENTER  => get_string('trimmodecenter', $this->block->blockname)
+            block_course_menu::TRIM_RIGHT => get_string('trimmoderight', $this->block->blockname),
+            block_course_menu::TRIM_LEFT => get_string('trimmodeleft', $this->block->blockname),
+            block_course_menu::TRIM_CENTER => get_string('trimmodecenter', $this->block->blockname)
         );
         $mform->addElement('select', 'config_trimmode', get_string('trimmode', $this->block->blockname), $options);
         $mform->setType('config_trimmode', PARAM_INT);
@@ -56,9 +61,15 @@ class block_course_menu_edit_form extends block_edit_form
         $mform->addElement('header', 'configheader', get_string('chapters', $this->block->blockname));
         $mform->addElement('hidden', 'config_chapEnable', '', array('id' => 'id_config_chapEnable'));
         $mform->setDefault('config_chapEnable', 0);
+        $mform->setType('config_chapEnable', PARAM_INT);
+        
         $mform->addElement('hidden', 'config_subChapEnable', '', array('id' => 'id_config_subChapEnable'));
         $mform->setDefault('config_subChapEnable', 0);
+        $mform->setType('config_subChapEnable', PARAM_INT);
+        
         $mform->addElement('hidden', 'config_subChaptersCount', '', array('id' => 'id_config_subChaptersCount'));
+        $mform->setType('config_subChaptersCount', PARAM_INT);
+        
         $mform->addElement('html', $this->block->config_chapters());
 
         $mform->addElement('header', 'configheader', get_string('elements', $this->block->blockname));
@@ -67,7 +78,17 @@ class block_course_menu_edit_form extends block_edit_form
         $mform->addElement('header', 'configheader', get_string('links', $this->block->blockname));
         $mform->addElement('hidden', 'config_linksEnable', '', array('id' => 'id_config_linksEnable'));
         $mform->setDefault('config_linksEnable', 0);
+        $mform->setType('config_linksEnable', PARAM_INT);
+        
         $mform->addElement('html', $this->block->config_links());
+        
+        $PAGE->requires->yui_module(array('moodle-block_course_menu-settings'), 'M.block_course_menu_settings.instance', 
+                array(
+                    $this->block->get_settings_util_js(), 
+                    $this->block->get_config(), 
+                    $this->block->get_section_names(),
+                    $this->block->is_site_level()), null, true);
+        
     }
-    
+
 }
